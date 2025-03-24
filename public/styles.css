@@ -1,0 +1,126 @@
+@import url("https://cdn.jsdelivr.net/npm/uikit@3/dist/css/uikit.min.css");
+
+/* Warm-Toned Dark Mode Theme for UIkit */
+:root {
+  --uk-background-primary: #222222;
+  --uk-background-secondary: #292420;
+  --uk-text-color: #EAE0D5;
+  --uk-primary-color: #D9945F;
+  --uk-secondary-color: #A56C3B;
+  --uk-accent-color: #F2C078;
+  --uk-border-color: #3E352D;
+  --uk-hover-color: #B07C4F;
+  --uk-input-background: #3E352D;
+  --uk-scrollbar-thumb: #5C4A37;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background-color: var(--uk-background-primary);
+  color: var(--uk-text-color);
+}
+
+/* Cards, Modals, Navbar */
+.uk-card-default,
+.uk-modal,
+.uk-navbar-container {
+  background-color: var(--uk-background-secondary);
+  border: 1px solid var(--uk-border-color);
+}
+
+/* Override headers to match background */
+.uk-card-header,
+.uk-card-footer {
+  background-color: var(--uk-background-primary);
+  border-bottom: 1px solid var(--uk-border-color);
+}
+
+/* Buttons */
+.uk-button-primary {
+  background-color: var(--uk-primary-color);
+  border-color: var(--uk-primary-color);
+  color: var(--uk-background-primary);
+}
+.uk-button-secondary {
+  background-color: var(--uk-secondary-color);
+  border-color: var(--uk-secondary-color);
+  color: var(--uk-background-primary);
+}
+.uk-button-primary:hover,
+.uk-button-secondary:hover {
+  background-color: var(--uk-hover-color);
+  border-color: var(--uk-hover-color);
+}
+.uk-button:focus {
+  box-shadow: 0 0 0 2px rgba(242,192,120,0.5);
+}
+
+/* Form Inputs */
+.uk-input,
+.uk-textarea,
+select {
+  background-color: var(--uk-input-background);
+  color: var(--uk-text-color);
+  border: 1px solid var(--uk-border-color);
+}
+.uk-input:focus,
+.uk-textarea:focus {
+  border-color: var(--uk-accent-color);
+  box-shadow: 0 0 0 2px rgba(242,192,120,0.4);
+}
+
+/* Tables */
+.uk-table {
+  background-color: transparent;
+}
+.uk-table-divider > tbody > tr {
+  border-bottom: 1px solid var(--uk-border-color);
+}
+.uk-table-hover > tbody > tr:hover {
+  background-color: var(--uk-background-secondary);
+}
+
+/* Links */
+a {
+  color: var(--uk-accent-color);
+}
+a:hover {
+  color: var(--uk-primary-color);
+}
+
+/* Notifications */
+.uk-notification {
+  background-color: var(--uk-background-secondary);
+  border: 1px solid var(--uk-border-color);
+  color: var(--uk-text-color);
+}
+.uk-notification-success {
+  background-color: #3C4F3D;
+}
+.uk-notification-danger {
+  background-color: #5E2A1D;
+}
+
+/* Spinner */
+.uk-spinner {
+  color: var(--uk-accent-color);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--uk-background-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--uk-scrollbar-thumb);
+  border-radius: 4px;
+}
+
+/* Miscellaneous */
+.uk-heading-line > span {
+  background-color: var(--uk-background-primary);
+  color: var(--uk-text-color);
+}
