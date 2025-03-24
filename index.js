@@ -3,11 +3,19 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const pLimit = require('p-limit');
+const path = require('path');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const { HttpProxyAgent } = require('http-proxy-agent');
 const https = require('https');
 const http = require('http');
 
 const app = express();
 const port = 3000;
+
+// Serve the static index.html file at the root route.
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Fixed base URLs from .env.
 const baseUrls = process.env.BASE_URLS
@@ -45,14 +53,14 @@ async function fetchWithBaseUrls(path) {
       try {
         const response = await axios.get(fullUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 1500,
+          timeout: 15000,
         });
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
       } catch (error) {
         attempts++;
         console.error(`Error fetching from ${base} on attempt ${attempts}: ${error.message}`);
-        await sleep(2000); // wait 2 seconds before next attempt
+        await sleep(2000);
       }
     }
   }
@@ -61,7 +69,7 @@ async function fetchWithBaseUrls(path) {
 
 /**
  * Parses the search results page HTML and extracts audiobook details.
- * It extracts available info from the search results page without following the details link.
+ * It extracts title, details URL, metadata, and image URL.
  * @param {string} html - Raw HTML from a search results page.
  * @returns {Promise<Array>} - Array of audiobook objects.
  */
