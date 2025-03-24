@@ -7,9 +7,11 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
-const WebTorrent = require('webtorrent');
-const client = new WebTorrent();
-
+let client;
+(async () => {
+  const { default: WebTorrent } = await import('webtorrent');
+  client = new WebTorrent();
+})();
 
 const app = express();
 const port = 3000;
