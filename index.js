@@ -6,9 +6,18 @@ const pLimit = require('p-limit');
 const path = require('path');
 const https = require('https');
 const http = require('http');
+const Bottleneck = require('bottleneck');
 
 const app = express();
 const port = 3000;
+
+// Create a Bottleneck limiter to allow 50 requests per 300 seconds.
+const limiter = new Bottleneck({
+  reservoir: 50,                      // initial number of requests
+  reservoirRefreshAmount: 50,         // number of requests to restore
+  reservoirRefreshInterval: 300000,   // refresh every 300,000 ms (300 sec)
+  maxConcurrent: 1,                   // only 1 concurrent request
+});
 
 // Serve the index.html file at the root route.
 app.get('/', (req, res) => {
@@ -20,8 +29,8 @@ const baseUrls = process.env.BASE_URLS
   ? process.env.BASE_URLS.split(',').map(url => url.trim())
   : [];
 
-// Use a strict concurrency limit (only 5 request at a time).
-const limitRequests = pLimit(5);
+// Use a strict concurrency limit (only 1 task at a time).
+const limitRequests = pLimit(1);
 
 // Set global axios defaults so HTTP/HTTPS use default agents.
 axios.defaults.httpAgent = new http.Agent({ keepAlive: true });
@@ -36,8 +45,19 @@ function sleep(ms) {
 }
 
 /**
+ * Helper to encode the search query.
+ * This replaces spaces with plus signs.
+ * @param {string} query - The raw search query.
+ * @returns {string} - The encoded query.
+ */
+function encodeSearchQuery(query) {
+  return encodeURIComponent(query).replace(/%20/g, '+');
+}
+
+/**
  * Attempts to fetch a URL by cycling through the fixed base URLs.
- * For each base URL, it will try up to 3 attempts with delays.
+ * For each base, it will try up to 3 attempts with delays.
+ * Each axios request is scheduled through the Bottleneck limiter.
  * @param {string} path - The path and query to append to the base URL.
  * @returns {Promise<Object>} - An object with { data, baseUsed }.
  */
@@ -48,20 +68,53 @@ async function fetchWithBaseUrls(path) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       try {
-        const response = await axios.get(fullUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 15000,
-        });
+        const response = await limiter.schedule(() =>
+          axios.get(fullUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+            timeout: 15000,
+          })
+        );
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
       } catch (error) {
         attempts++;
         console.error(`Error fetching from ${base} on attempt ${attempts}: ${error.message}`);
-        await sleep(500);
+        await sleep(2000);
       }
     }
   }
   throw new Error('All base URLs failed after multiple attempts');
+}
+
+/**
+ * Fetches the torrent link from the audiobook details page.
+ * For now this function is not used, since we delay fetching the torrent URL until download.
+ * It is retained here for future use.
+ * @param {string} detailsUrl - URL (or path) of the audiobook details page.
+ * @returns {Promise<string|null>} - The torrent link if found, otherwise null.
+ */
+async function getTorrentLinkFromDetailsPage(detailsUrl) {
+  const maxAttempts = 3;
+  let attempts = 0;
+  while (attempts < maxAttempts) {
+    try {
+      const response = await limiter.schedule(() =>
+        axios.get(detailsUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+          timeout: 15000,
+        })
+      );
+      await sleep(2000);
+      const $ = cheerio.load(response.data);
+      let torrentLink = $('a:contains("Torrent Free Downloads")').attr('href');
+      if (torrentLink) return torrentLink;
+    } catch (error) {
+      attempts++;
+      console.error(`Error fetching details page ${detailsUrl} on attempt ${attempts}: ${error.message}`);
+      await sleep(2000);
+    }
+  }
+  return null;
 }
 
 /**
@@ -106,25 +159,25 @@ function getTotalPages(html) {
 
 /**
  * Searches for audiobooks and handles pagination (limited to the first 5 pages).
- * The search path is now built to mimic the browser's search string.
+ * The search path is built using the encoded search query.
  * @param {string} query - The search term.
  * @returns {Promise<Array>} - Combined results from all pages.
  */
 async function searchAudiobooks(query) {
-  // Build the search path to include the extra "cat" parameter.
-  const searchPath = `/?s=${encodeURIComponent(query)}&cat=undefined%2Cundefined`;
-  console.log(searchPath);
+  const encodedQuery = encodeSearchQuery(query);
+  // Build the search path; we include the cat parameter to mimic browser behavior.
+  const searchPath = `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
-    await sleep(500);
+    await sleep(2000);
     let results = await parseAudiobookSearchResults(firstPageData);
     const totalPages = getTotalPages(firstPageData);
-    const pagesToFetch = Math.min(totalPages, 3);
+    const pagesToFetch = Math.min(totalPages, 5);
     console.log(`Fetching pages 2 to ${pagesToFetch}`);
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = `/page/${page}/?s=${encodeURIComponent(query)}&cat=undefined%2Cundefined`;
+        const pagePath = `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {
