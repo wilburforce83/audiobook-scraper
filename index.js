@@ -7,6 +7,9 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
+const WebTorrent = require('webtorrent');
+const client = new WebTorrent();
+
 
 const app = express();
 const port = 3000;
@@ -206,49 +209,39 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
   }
   
 
-/**
- * POST /download route.
- * Expects a JSON body with a property "detailsUrls" which is an array of details page URLs.
- * For each URL, retrieves the torrent URL and downloads the torrent file to LIBRARY_PATH.
- */
-app.post('/download', async (req, res) => {
-  const detailsUrls = req.body.detailsUrls;
-  if (!detailsUrls || !Array.isArray(detailsUrls) || !detailsUrls.length) {
-    return res.status(400).send('Request body must contain a "detailsUrls" array with at least one URL.');
+  async function extractInfoHash(detailsUrl) {
+    const { data } = await axios.get(detailsUrl, { timeout: 500 });
+    const $ = cheerio.load(data);
+    const infoHash = $('tr:contains("Info Hash:")').find('td').last().text().trim();
+    return infoHash || null;
   }
   
-  const results = [];
-  
-  for (const url of detailsUrls) {
-    try {
-      const torrentUrl = await getTorrentLinkFromDetailsPage(url);
-      if (!torrentUrl) {
-        results.push({ detailsUrl: url, status: 'failed', error: 'Torrent URL not found' });
-        continue;
+  app.post('/download', async (req, res) => {
+    const urls = req.body.detailsUrls || [];
+    const results = await Promise.all(urls.map(async url => {
+      try {
+        const infoHash = await extractInfoHash(url);
+        if (!infoHash) throw new Error('Info Hash not found');
+        const magnet = `magnet:?xt=urn:btih:${infoHash}`;
+        const torrentPath = path.join(LIBRARY_PATH, `${infoHash}.torrent`);
+        await new Promise((resolve, reject) => {
+          client.add(magnet, { path: LIBRARY_PATH }, torrent => {
+            torrent.on('metadata', () => {
+              fs.writeFileSync(torrentPath, torrent.torrentFile);
+              torrent.destroy();
+              resolve();
+            });
+            torrent.on('error', reject);
+          });
+        });
+        return { detailsUrl: url, infoHash, filepath: torrentPath, status: 'success' };
+      } catch (error) {
+        return { detailsUrl: url, status: 'failed', error: error.message };
       }
-      
-      // Download torrent file (as arraybuffer)
-      const torrentResponse = await axios.get(torrentUrl, {
-        responseType: 'arraybuffer',
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        timeout: 3000,
-      });
-      
-      // Create a filename using current timestamp and index (or derive from URL)
-      const filename = 'download_' + Date.now() + '_' + Math.floor(Math.random()*1000) + '.torrent';
-      const filepath = path.join(LIBRARY_PATH, filename);
-      
-      fs.writeFileSync(filepath, torrentResponse.data);
-      console.log(`Downloaded torrent from ${torrentUrl} to ${filepath}`);
-      results.push({ detailsUrl: url, torrentUrl, filepath, status: 'success' });
-    } catch (error) {
-      console.error(`Error downloading torrent for ${url}: ${error.message}`);
-      results.push({ detailsUrl: url, status: 'failed', error: error.message });
-    }
-  }
+    }));
+    res.json(results);
+  });
   
-  res.json(results);
-});
 
 // Start the server.
 app.listen(port, () => {
