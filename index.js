@@ -29,7 +29,7 @@ const baseUrls = process.env.BASE_URLS
 const LIBRARY_PATH = process.env.LIBRARY_PATH || '/absolute/path/to/library';
 
 // Use a strict concurrency limit (only 1 task at a time).
-const limitRequests = pLimit(1);
+const limitRequests = pLimit(5);
 
 // Set global axios defaults so HTTP/HTTPS use default agents.
 axios.defaults.httpAgent = new http.Agent({ keepAlive: true });
@@ -67,14 +67,14 @@ async function fetchWithBaseUrls(path) {
       try {
         const response = await axios.get(fullUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 15000,
+          timeout: 500,
         });
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
       } catch (error) {
         attempts++;
         console.error(`Error fetching from ${base} on attempt ${attempts}: ${error.message}`);
-        await sleep(2000);
+        await sleep(100);
       }
     }
   }
@@ -96,7 +96,7 @@ async function parseAudiobookSearchResults(html) {
         const detailsUrl = $(elem).find('div.postMeta span.postLink a').attr('href');
         const metaText = $(elem).find('div.postContent p').last().text().trim();
         const imageUrl = $(elem).find('div.postContent .center a img').attr('src');
-        await sleep(1000);
+        await sleep(50);
         return { title, detailsUrl, metaText, imageUrl };
       })
     )
@@ -130,7 +130,7 @@ async function searchAudiobooks(query) {
   const searchPath = `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
-    await sleep(2000);
+    await sleep(100);
     let results = await parseAudiobookSearchResults(firstPageData);
     const totalPages = getTotalPages(firstPageData);
     const pagesToFetch = Math.min(totalPages, 5);
@@ -142,7 +142,7 @@ async function searchAudiobooks(query) {
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {
-              await sleep(2000);
+              await sleep(100);
               return parseAudiobookSearchResults(res.data);
             })
             .catch(err => {
@@ -183,9 +183,9 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
       try {
         const response = await axios.get(detailsUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 15000,
+          timeout: 500,
         });
-        await sleep(2000);
+        await sleep(100);
         const $ = cheerio.load(response.data);
         let torrentLink = $('a:contains("Torrent Free Downloads")').attr('href');
         if (torrentLink) {
@@ -199,7 +199,7 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
       } catch (error) {
         attempts++;
         console.error(`Error fetching details page ${detailsUrl} on attempt ${attempts}: ${error.message}`);
-        await sleep(2000);
+        await sleep(100);
       }
     }
     return null;
