@@ -4,25 +4,23 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const pLimit = require('p-limit');
 const path = require('path');
-const { HttpsProxyAgent } = require('https-proxy-agent');
-const { HttpProxyAgent } = require('http-proxy-agent');
 const https = require('https');
 const http = require('http');
 
 const app = express();
 const port = 3000;
 
-// Serve the static index.html file at the root route.
+// Serve the index.html file at the root route.
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Fixed base URLs from .env.
+// Fixed base URLs from .env (make sure they do not include any extra query parameters)
 const baseUrls = process.env.BASE_URLS
   ? process.env.BASE_URLS.split(',').map(url => url.trim())
   : [];
 
-// Use a strict concurrency limit (only 1 request at a time).
+// Use a strict concurrency limit (only 1 request at a time)
 const limitRequests = pLimit(1);
 
 // Set global axios defaults so HTTP/HTTPS use default agents.
@@ -39,8 +37,7 @@ function sleep(ms) {
 
 /**
  * Attempts to fetch a URL by cycling through the fixed base URLs.
- * For each base URL, it will try up to a maximum number of attempts
- * with delays between attempts.
+ * For each base URL, it will try up to 3 attempts with delays.
  * @param {string} path - The path and query to append to the base URL.
  * @returns {Promise<Object>} - An object with { data, baseUsed }.
  */
@@ -109,10 +106,12 @@ function getTotalPages(html) {
 
 /**
  * Searches for audiobooks and handles pagination (limited to the first 5 pages).
+ * The search string is built using only the "s" parameter.
  * @param {string} query - The search term.
  * @returns {Promise<Array>} - Combined results from all pages.
  */
 async function searchAudiobooks(query) {
+  // Build the search path using only the "s" parameter.
   const searchPath = `/?s=${encodeURIComponent(query)}`;
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
