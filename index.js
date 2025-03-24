@@ -255,7 +255,7 @@ function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
         console.log(`🔍 Starting metadata fetch for ${infoHash}`);
         await new Promise((resolve, reject) => {
           const torrent = client.add(magnet, { path: LIBRARY_PATH });
-          fetchMetadataOrTimeout(torrent, 10000)
+          fetchMetadataOrTimeout(torrent, 25000)
             .then(() => {
               console.log(`✅ Metadata fetched for ${infoHash}`);
               fs.writeFileSync(torrentPath, torrent.torrentFile);
