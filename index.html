@@ -30,13 +30,21 @@
       right: 20px;
       z-index: 1050;
     }
+    #resultsSection {
+      display: none;
+    }
+    .logo {
+      max-height: 40px;
+      margin-right: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="container mt-4">
     <div class="row align-items-center mb-4">
-      <div class="col-md-8">
-        <h1>Audiobook Scraper</h1>
+      <div class="col-md-8 d-flex align-items-center">
+        <img src="/audiobook.png" alt="Logo" class="logo">
+        <h1 class="mb-0">Audiobook Scraper</h1>
       </div>
       <div class="col-md-4 text-right">
         <button id="downloadBtn" class="btn btn-success">Download to Library</button>
@@ -51,18 +59,20 @@
         <span class="sr-only">Loading...</span>
       </div>
     </div>
-    <table class="table table-dark table-hover">
-      <thead>
-        <tr>
-          <th scope="col"><input type="checkbox" id="selectAll"></th>
-          <th scope="col">Title</th>
-          <th scope="col">Details URL</th>
-          <th scope="col">Metadata</th>
-          <th scope="col">Image</th>
-        </tr>
-      </thead>
-      <tbody id="resultsTable"></tbody>
-    </table>
+    <div id="resultsSection">
+      <table class="table table-dark table-hover">
+        <thead>
+          <tr>
+            <th scope="col"><input type="checkbox" id="selectAll"></th>
+            <th scope="col">Title</th>
+            <th scope="col">Details URL</th>
+            <th scope="col">Metadata</th>
+            <th scope="col">Image</th>
+          </tr>
+        </thead>
+        <tbody id="resultsTable"></tbody>
+      </table>
+    </div>
   </div>
   <div class="toast-container"></div>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -92,6 +102,7 @@
         $('#resultsTable').empty();
         $('#loadingSpinner').show();
         $('#downloadBtn').hide();
+        $('#resultsSection').hide();
         $.ajax({
           url: '/search',
           method: 'GET',
@@ -100,6 +111,7 @@
             $('#loadingSpinner').hide();
             if (!data.length) {
               $('#resultsTable').append('<tr><td colspan="5">No results found.</td></tr>');
+              $('#resultsSection').show();
             } else {
               data.forEach(function(item) {
                 var row = '<tr>' +
@@ -110,6 +122,7 @@
                   '<td>' + (item.imageUrl ? '<img src="' + item.imageUrl + '" alt="Book Image" class="result-image">' : '') + '</td></tr>';
                 $('#resultsTable').append(row);
               });
+              $('#resultsSection').show();
             }
           },
           error: function() {

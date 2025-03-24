@@ -16,6 +16,7 @@
     "chokidar": "^4.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-session": "^1.18.1",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "p-limit": "^3.1.0",

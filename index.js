@@ -16,13 +16,56 @@ let client;
 const app = express();
 const port = process.env.PORT || 3000;
 
+const session = require('express-session');
+const bodyParser = require('body-parser');
+
+const USERNAME = process.env.AUTH_USERNAME;
+const PASSWORD = process.env.AUTH_PASSWORD;
+
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
+
+app.use(session({
+  secret: 'audiobook_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 60 * 60 * 1000 } // 1 hour
+}));
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+function requireAuth(req, res, next) {
+    if (req.session && req.session.authenticated) {
+      next();
+    } else {
+      res.redirect('/login');
+    }
+  }
+  
+  app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+  });
+  
+  app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === USERNAME && password === PASSWORD) {
+      req.session.authenticated = true;
+      res.redirect('/');
+    } else {
+      res.send('Invalid credentials. <a href="/login">Try again</a>.');
+    }
+  });
+  
+
 // Serve the index.html file at the root route.
-app.get('/', (req, res) => {
+app.get('/', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 
 // Fixed base URLs from .env.
 const baseUrls = process.env.BASE_URLS
@@ -167,7 +210,7 @@ async function searchAudiobooks(query) {
 }
 
 // Express endpoint to perform a search.
-app.get('/search', async (req, res) => {
+app.get('/search', requireAuth, async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).send('Query parameter "q" is required');
   const results = await searchAudiobooks(query);
@@ -240,7 +283,7 @@ function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
     });
   }
   
-  app.post('/download', async (req, res) => {
+  app.post('/download', requireAuth, async (req, res) => {
     const urls = req.body.detailsUrls || [];
     const results = [];
   
