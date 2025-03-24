@@ -218,49 +218,66 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
     return infoHash || null;
   }
   
+  /**
+ * Helper: wait for metadata or timeout
+ */
+function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        torrent.destroy();
+        reject(new Error('torrent is dead (metadata timeout)'));
+      }, timeoutMs);
+  
+      torrent.once('metadata', () => {
+        clearTimeout(timer);
+        resolve();
+      });
+  
+      torrent.once('error', err => {
+        clearTimeout(timer);
+        reject(err);
+      });
+    });
+  }
+  
   app.post('/download', async (req, res) => {
-    const detailsUrls = req.body.detailsUrls || [];
+    const urls = req.body.detailsUrls || [];
     const results = [];
   
-    for (const url of detailsUrls) {
+    for (const url of urls) {
       try {
         const infoHash = await extractInfoHash(url);
         if (!infoHash) throw new Error('Info Hash not found');
   
         const magnet = `magnet:?xt=urn:btih:${infoHash}`;
-        console.log(`▶️  Starting conversion for Info Hash ${infoHash}`);
-        console.log(`    Magnet URI: ${magnet}`);
-  
         const torrentPath = path.join(LIBRARY_PATH, `${infoHash}.torrent`);
   
+        console.log(`🔍 Starting metadata fetch for ${infoHash}`);
         await new Promise((resolve, reject) => {
           const torrent = client.add(magnet, { path: LIBRARY_PATH });
-  
-          torrent.on('metadata', () => {
-            console.log(`✅ Metadata fetched for ${infoHash}:`);
-            console.log(`    Name: ${torrent.name}`);
-            console.log(`    File count: ${torrent.files.length}`);
-            fs.writeFileSync(torrentPath, torrent.torrentFile);
-            console.log(`💾 .torrent file saved to ${torrentPath}`);
-            torrent.destroy();
-            resolve();
-          });
-  
-          torrent.on('error', err => {
-            console.error(`❌ WebTorrent error for ${infoHash}:`, err.message);
-            reject(err);
-          });
+          fetchMetadataOrTimeout(torrent, 10000)
+            .then(() => {
+              console.log(`✅ Metadata fetched for ${infoHash}`);
+              fs.writeFileSync(torrentPath, torrent.torrentFile);
+              console.log(`💾 Saved .torrent to ${torrentPath}`);
+              torrent.destroy();
+              resolve();
+            })
+            .catch(err => {
+              console.error(`❌ ${infoHash} failed: ${err.message}`);
+              reject(err);
+            });
         });
   
         results.push({ detailsUrl: url, infoHash, filepath: torrentPath, status: 'success' });
       } catch (error) {
-        console.error(`❌ Download failed for ${url}:`, error.message);
         results.push({ detailsUrl: url, status: 'failed', error: error.message });
       }
     }
   
     res.json(results);
   });
+  
   
   
 
