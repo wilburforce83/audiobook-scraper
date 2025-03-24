@@ -170,32 +170,41 @@ app.get('/search', async (req, res) => {
 });
 
 /**
- * Helper: Fetches the torrent URL from a details page.
- * This function extracts the "Torrent Free Downloads" link.
- * @param {string} detailsUrl
- * @returns {Promise<string|null>}
+ * Fetches the torrent link from the audiobook details page.
+ * Retries several times if needed.
+ * If the extracted torrent link is relative, prefixes it with the details URL's origin.
+ * @param {string} detailsUrl - URL (or path) of the audiobook details page.
+ * @returns {Promise<string|null>} - The torrent link if found, otherwise null.
  */
 async function getTorrentLinkFromDetailsPage(detailsUrl) {
-  const maxAttempts = 3;
-  let attempts = 0;
-  while (attempts < maxAttempts) {
-    try {
-      const response = await axios.get(detailsUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-        timeout: 3000,
-      });
-      await sleep(2000);
-      const $ = cheerio.load(response.data);
-      const torrentLink = $('a:contains("Torrent Free Downloads")').attr('href');
-      if (torrentLink) return torrentLink;
-    } catch (error) {
-      attempts++;
-      console.error(`Error fetching details page ${detailsUrl} on attempt ${attempts}: ${error.message}`);
-      await sleep(2000);
+    const maxAttempts = 3;
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+      try {
+        const response = await axios.get(detailsUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+          timeout: 15000,
+        });
+        await sleep(2000);
+        const $ = cheerio.load(response.data);
+        let torrentLink = $('a:contains("Torrent Free Downloads")').attr('href');
+        if (torrentLink) {
+          // If the torrent link is not absolute, prefix it with the details URL origin.
+          if (!torrentLink.startsWith('http')) {
+            const detailsUrlObj = new URL(detailsUrl);
+            torrentLink = detailsUrlObj.origin + torrentLink;
+          }
+          return torrentLink;
+        }
+      } catch (error) {
+        attempts++;
+        console.error(`Error fetching details page ${detailsUrl} on attempt ${attempts}: ${error.message}`);
+        await sleep(2000);
+      }
     }
+    return null;
   }
-  return null;
-}
+  
 
 /**
  * POST /download route.
