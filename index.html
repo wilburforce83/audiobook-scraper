@@ -19,31 +19,45 @@
       text-align: center;
       margin: 20px 0;
     }
+    /* Fixed position Download button on the right side, hidden initially */
+    #downloadBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: none;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
   <div class="container mt-4">
-    <h1 class="mb-4">Audiobook Scraper</h1>
+    <!-- Header row with title and Download button -->
+    <div class="row align-items-center mb-4">
+      <div class="col-md-8">
+        <h1>Audiobook Scraper</h1>
+      </div>
+      <div class="col-md-4 text-right">
+        <button id="downloadBtn" class="btn btn-success">Download to Library</button>
+      </div>
+    </div>
     <!-- Search Form -->
     <form id="searchForm" class="form-inline mb-4">
-      <div class="form-group mr-2">
-        <input type="text" class="form-control" id="searchInput" placeholder="Enter search term..." required>
-      </div>
+      <input type="text" id="searchInput" class="form-control mr-2" placeholder="Enter search term" required>
       <button type="submit" class="btn btn-primary">Search</button>
     </form>
-
+    
     <!-- Loading Spinner -->
     <div id="loadingSpinner">
       <div class="spinner-border text-light" role="status">
         <span class="sr-only">Loading...</span>
       </div>
     </div>
-
+    
     <!-- Results Table -->
     <table class="table table-dark table-hover">
       <thead>
         <tr>
-          <th scope="col"><input type="checkbox" disabled></th>
+          <th scope="col"><input type="checkbox" id="selectAll"></th>
           <th scope="col">Title</th>
           <th scope="col">Details URL</th>
           <th scope="col">Metadata</th>
@@ -55,26 +69,27 @@
       </tbody>
     </table>
   </div>
-
+  
   <!-- jQuery and Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  
   <script>
     $(document).ready(function() {
+      // Handle search form submission.
       $('#searchForm').on('submit', function(e) {
         e.preventDefault();
         var query = $('#searchInput').val().trim();
         if (!query) return;
         
-        // Clear previous results and show the loading spinner
         $('#resultsTable').empty();
         $('#loadingSpinner').show();
+        $('#downloadBtn').hide();
         
-        // Send the search request to the backend
         $.ajax({
           url: '/search',
-          data: { q: query },
           method: 'GET',
+          data: { q: query },
           success: function(data) {
             $('#loadingSpinner').hide();
             if (!data.length) {
@@ -82,13 +97,13 @@
             } else {
               data.forEach(function(item) {
                 var row = '<tr>' +
-                  '<td><input type="checkbox"></td>' +
+                  '<td><input type="checkbox" class="selectRow" data-details-url="'+ item.detailsUrl +'"></td>' +
                   '<td>' + item.title + '</td>' +
                   '<td><a href="' + item.detailsUrl + '" target="_blank">' + item.detailsUrl + '</a></td>' +
                   '<td>' + item.metaText + '</td>' +
                   '<td>';
                 if (item.imageUrl) {
-                  row += '<img src="' + item.imageUrl + '" class="result-image" alt="Book Image">';
+                  row += '<img src="' + item.imageUrl + '" alt="Book Image" class="result-image">';
                 }
                 row += '</td></tr>';
                 $('#resultsTable').append(row);
@@ -98,6 +113,48 @@
           error: function(err) {
             $('#loadingSpinner').hide();
             $('#resultsTable').append('<tr><td colspan="5">Error fetching results.</td></tr>');
+          }
+        });
+      });
+      
+      // Show/hide download button when checkboxes change.
+      $(document).on('change', '.selectRow', function() {
+        if ($('.selectRow:checked').length > 0) {
+          $('#downloadBtn').show();
+        } else {
+          $('#downloadBtn').hide();
+        }
+      });
+      
+      // "Select All" checkbox functionality.
+      $('#selectAll').on('change', function() {
+        var checked = $(this).is(':checked');
+        $('.selectRow').prop('checked', checked).trigger('change');
+      });
+      
+      // When the "Download to Library" button is clicked.
+      $('#downloadBtn').on('click', function() {
+        var selectedUrls = [];
+        $('.selectRow:checked').each(function() {
+          var url = $(this).data('details-url');
+          if (url) selectedUrls.push(url);
+        });
+        if (selectedUrls.length === 0) return;
+        
+        // Show loading spinner during download.
+        $('#loadingSpinner').show();
+        $.ajax({
+          url: '/download',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ detailsUrls: selectedUrls }),
+          success: function(response) {
+            $('#loadingSpinner').hide();
+            alert('Download initiated. Check server logs for status.');
+          },
+          error: function(err) {
+            $('#loadingSpinner').hide();
+            alert('Error initiating download.');
           }
         });
       });
