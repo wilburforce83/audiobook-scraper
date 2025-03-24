@@ -64,6 +64,7 @@ function encodeSearchQuery(query) {
 async function fetchWithBaseUrls(path) {
   for (const base of baseUrls) {
     const fullUrl = path.startsWith('http') ? path : `${base}${path}`;
+    console.log(fullUrl);
     const maxAttempts = 3;
     let attempts = 0;
     while (attempts < maxAttempts) {
@@ -167,6 +168,7 @@ async function searchAudiobooks(query) {
   const encodedQuery = encodeSearchQuery(query);
   // Build the search path; we include the cat parameter to mimic browser behavior.
   const searchPath = `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+  console.log(searchPath);
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
     await sleep(2000);
