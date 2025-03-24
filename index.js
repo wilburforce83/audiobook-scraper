@@ -20,8 +20,8 @@ const baseUrls = process.env.BASE_URLS
   ? process.env.BASE_URLS.split(',').map(url => url.trim())
   : [];
 
-// Use a strict concurrency limit (only 1 request at a time).
-const limitRequests = pLimit(1);
+// Use a strict concurrency limit (only 5 request at a time).
+const limitRequests = pLimit(5);
 
 // Set global axios defaults so HTTP/HTTPS use default agents.
 axios.defaults.httpAgent = new http.Agent({ keepAlive: true });
@@ -57,7 +57,7 @@ async function fetchWithBaseUrls(path) {
       } catch (error) {
         attempts++;
         console.error(`Error fetching from ${base} on attempt ${attempts}: ${error.message}`);
-        await sleep(2000);
+        await sleep(500);
       }
     }
   }
@@ -113,12 +113,13 @@ function getTotalPages(html) {
 async function searchAudiobooks(query) {
   // Build the search path to include the extra "cat" parameter.
   const searchPath = `/?s=${encodeURIComponent(query)}&cat=undefined%2Cundefined`;
+  console.log(searchPath);
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
-    await sleep(2000);
+    await sleep(500);
     let results = await parseAudiobookSearchResults(firstPageData);
     const totalPages = getTotalPages(firstPageData);
-    const pagesToFetch = Math.min(totalPages, 5);
+    const pagesToFetch = Math.min(totalPages, 3);
     console.log(`Fetching pages 2 to ${pagesToFetch}`);
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
