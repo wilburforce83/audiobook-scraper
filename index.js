@@ -219,30 +219,49 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
   }
   
   app.post('/download', async (req, res) => {
-    const urls = req.body.detailsUrls || [];
-    const results = await Promise.all(urls.map(async url => {
+    const detailsUrls = req.body.detailsUrls || [];
+    const results = [];
+  
+    for (const url of detailsUrls) {
       try {
         const infoHash = await extractInfoHash(url);
         if (!infoHash) throw new Error('Info Hash not found');
+  
         const magnet = `magnet:?xt=urn:btih:${infoHash}`;
+        console.log(`▶️  Starting conversion for Info Hash ${infoHash}`);
+        console.log(`    Magnet URI: ${magnet}`);
+  
         const torrentPath = path.join(LIBRARY_PATH, `${infoHash}.torrent`);
+  
         await new Promise((resolve, reject) => {
-          client.add(magnet, { path: LIBRARY_PATH }, torrent => {
-            torrent.on('metadata', () => {
-              fs.writeFileSync(torrentPath, torrent.torrentFile);
-              torrent.destroy();
-              resolve();
-            });
-            torrent.on('error', reject);
+          const torrent = client.add(magnet, { path: LIBRARY_PATH });
+  
+          torrent.on('metadata', () => {
+            console.log(`✅ Metadata fetched for ${infoHash}:`);
+            console.log(`    Name: ${torrent.name}`);
+            console.log(`    File count: ${torrent.files.length}`);
+            fs.writeFileSync(torrentPath, torrent.torrentFile);
+            console.log(`💾 .torrent file saved to ${torrentPath}`);
+            torrent.destroy();
+            resolve();
+          });
+  
+          torrent.on('error', err => {
+            console.error(`❌ WebTorrent error for ${infoHash}:`, err.message);
+            reject(err);
           });
         });
-        return { detailsUrl: url, infoHash, filepath: torrentPath, status: 'success' };
+  
+        results.push({ detailsUrl: url, infoHash, filepath: torrentPath, status: 'success' });
       } catch (error) {
-        return { detailsUrl: url, status: 'failed', error: error.message };
+        console.error(`❌ Download failed for ${url}:`, error.message);
+        results.push({ detailsUrl: url, status: 'failed', error: error.message });
       }
-    }));
+    }
+  
     res.json(results);
   });
+  
   
 
 // Start the server.
