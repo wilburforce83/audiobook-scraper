@@ -15,12 +15,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Fixed base URLs from .env (make sure they do not include any extra query parameters)
+// Fixed base URLs from .env.
 const baseUrls = process.env.BASE_URLS
   ? process.env.BASE_URLS.split(',').map(url => url.trim())
   : [];
 
-// Use a strict concurrency limit (only 1 request at a time)
+// Use a strict concurrency limit (only 1 request at a time).
 const limitRequests = pLimit(1);
 
 // Set global axios defaults so HTTP/HTTPS use default agents.
@@ -106,13 +106,13 @@ function getTotalPages(html) {
 
 /**
  * Searches for audiobooks and handles pagination (limited to the first 5 pages).
- * The search string is built using only the "s" parameter.
+ * The search path is now built to mimic the browser's search string.
  * @param {string} query - The search term.
  * @returns {Promise<Array>} - Combined results from all pages.
  */
 async function searchAudiobooks(query) {
-  // Build the search path using only the "s" parameter.
-  const searchPath = `/?s=${encodeURIComponent(query)}`;
+  // Build the search path to include the extra "cat" parameter.
+  const searchPath = `/?s=${encodeURIComponent(query)}&cat=undefined%2Cundefined`;
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
     await sleep(2000);
@@ -123,7 +123,7 @@ async function searchAudiobooks(query) {
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = `/page/${page}/?s=${encodeURIComponent(query)}`;
+        const pagePath = `/page/${page}/?s=${encodeURIComponent(query)}&cat=undefined%2Cundefined`;
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {
