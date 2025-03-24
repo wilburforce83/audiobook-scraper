@@ -49,7 +49,7 @@ function sleep(ms) {
  * @returns {string}
  */
 function encodeSearchQuery(query) {
-  return encodeURIComponent(query).replace(/%20/g, '+');
+  return encodeURIComponent(query).replace(/%20/g, '+').toLowerCase();
 }
 
 /**
