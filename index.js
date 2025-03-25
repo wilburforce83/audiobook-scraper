@@ -542,11 +542,11 @@ function resumeActiveTorrents() {
   tryStartQueuedItems();
 }
 
-// Cron every 4 hours
-cron.schedule('0 */4 * * *', () => {
-  console.log('Running 4-hour collection processing...');
+cron.schedule('*/10 * * * *', () => {
+  console.log('Running collection processing every 10 minutes...');
   processCollection();
 });
+
 
 /* --- Left Sidebar Data (Daily) --- */
 const dbFilePath = path.join(__dirname, 'db', 'leftSidebarLinks.json');
