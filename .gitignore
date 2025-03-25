@@ -1,2 +1,5 @@
 node_modules
 .env
+db/collection.js
+db/leftSidebarLinks.json
+db/newBooks.json
