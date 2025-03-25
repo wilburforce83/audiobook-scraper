@@ -17,7 +17,10 @@ let client;
 (async () => {
   const { default: WebTorrent } = await import('webtorrent');
   client = new WebTorrent();
+  console.log('WebTorrent client created in Node. Resuming active/queued torrents...');
+  resumeActiveTorrents(); // call your resume logic here
 })();
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -641,13 +644,7 @@ app.get('/newbooks', requireAuth, (req, res) => {
   res.json(data);
 });
 
-/*
- * On server start, resume any "downloading" or "queued" items
- */
-client.on('ready', () => {
-  console.log('WebTorrent client is ready, resuming active/queued torrents...');
-  resumeActiveTorrents();
-});
+
 
 // Start server
 app.listen(port, () => {
