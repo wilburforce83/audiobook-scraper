@@ -124,3 +124,9 @@ a:hover {
   background-color: var(--uk-background-primary);
   color: var(--uk-text-color);
 }
+
+/* Override modal background for download modal */
+#downloadModal .uk-modal-dialog {
+  background-color: #444444; /* Medium dark grey */
+  color: var(--uk-text-color); /* Ensure text is visible */
+}
