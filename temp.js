@@ -102,7 +102,7 @@ async function fetchWithBaseUrls(path) {
       try {
         const response = await axios.get(fullUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 3000,
+          timeout: 750,
         });
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
@@ -289,43 +289,6 @@ app.post('/download', requireAuth, async (req, res) => {
   res.json({ message: 'Added to collection', count: detailsUrls.length });
 });
 
-
-// SSE route for streaming collection changes
-app.get('/collection/stream', requireAuth, (req, res) => {
-  // Set up SSE headers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-
-  // Keep the connection alive by sending a comment every 30s
-  const keepAliveInterval = setInterval(() => {
-    res.write(': keep-alive\n\n');
-  }, 30000);
-
-  // Function to load the entire collection and send it to the client
-  function sendCollectionData() {
-    try {
-      const data = JSON.parse(fs.readFileSync(collectionFilePath, 'utf8'));
-      // SSE sends data in text form, so we stringify the JSON
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-    } catch (err) {
-      console.error('Error reading collection file:', err);
-    }
-  }
-
-  // Watch the file for changes
-  fs.watchFile(collectionFilePath, { interval: 1000 }, sendCollectionData);
-
-  // Send initial data right away
-  sendCollectionData();
-
-  // Cleanup when client disconnects
-  req.on('close', () => {
-    clearInterval(keepAliveInterval);
-    fs.unwatchFile(collectionFilePath, sendCollectionData);
-    res.end();
-  });
-});
 
 /*
  * We'll keep the SSE-based logs for the old approach, or we can repurpose them. 

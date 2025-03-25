@@ -1,0 +1,214 @@
+{
+  "categories": [
+    {
+      "name": "(Post)apocalyptic",
+      "href": "/audio-books/type/postapocalyptic/"
+    },
+    {
+      "name": "Action",
+      "href": "/audio-books/type/action/"
+    },
+    {
+      "name": "Adventure",
+      "href": "/audio-books/type/adventure/"
+    },
+    {
+      "name": "Art",
+      "href": "/audio-books/type/art/"
+    },
+    {
+      "name": "Autobiography & Biographies",
+      "href": "/audio-books/type/autobiography-biographies/"
+    },
+    {
+      "name": "Business",
+      "href": "/audio-books/type/business/"
+    },
+    {
+      "name": "Computer",
+      "href": "/audio-books/type/computer/"
+    },
+    {
+      "name": "Contemporary",
+      "href": "/audio-books/type/contemporary/"
+    },
+    {
+      "name": "Crime",
+      "href": "/audio-books/type/crime/"
+    },
+    {
+      "name": "Detective",
+      "href": "/audio-books/type/detective/"
+    },
+    {
+      "name": "Doctor Who",
+      "href": "/audio-books/type/doctor-who-sci-fi/"
+    },
+    {
+      "name": "Education",
+      "href": "/audio-books/type/education/"
+    },
+    {
+      "name": "Fantasy",
+      "href": "/audio-books/type/fantasy/"
+    },
+    {
+      "name": "General Fiction",
+      "href": "/audio-books/type/general-fiction/"
+    },
+    {
+      "name": "Historical Fiction",
+      "href": "/audio-books/type/historical-fiction/"
+    },
+    {
+      "name": "History",
+      "href": "/audio-books/type/history/"
+    },
+    {
+      "name": "Horror",
+      "href": "/audio-books/type/horror/"
+    },
+    {
+      "name": "Humor",
+      "href": "/audio-books/type/humor/"
+    },
+    {
+      "name": "Lecture",
+      "href": "/audio-books/type/lecture/"
+    },
+    {
+      "name": "LGBT",
+      "href": "/audio-books/type/lgbt/"
+    },
+    {
+      "name": "Light Novel",
+      "href": "/audio-books/type/light-novel/"
+    },
+    {
+      "name": "Literature",
+      "href": "/audio-books/type/literature/"
+    },
+    {
+      "name": "LitRPG",
+      "href": "/audio-books/type/litrpg/"
+    },
+    {
+      "name": "Misc. Non-fiction",
+      "href": "/audio-books/type/general-non-fiction/"
+    },
+    {
+      "name": "Mystery",
+      "href": "/audio-books/type/mystery/"
+    },
+    {
+      "name": "Paranormal",
+      "href": "/audio-books/type/paranormal/"
+    },
+    {
+      "name": "Plays & Theater",
+      "href": "/audio-books/type/plays-theater/"
+    },
+    {
+      "name": "Poetry",
+      "href": "/audio-books/type/poetry/"
+    },
+    {
+      "name": "Political",
+      "href": "/audio-books/type/political/"
+    },
+    {
+      "name": "Radio Productions",
+      "href": "/audio-books/type/radio-productions/"
+    },
+    {
+      "name": "Romance",
+      "href": "/audio-books/type/romance/"
+    },
+    {
+      "name": "Sci-Fi",
+      "href": "/audio-books/type/sci-fi/"
+    },
+    {
+      "name": "Science",
+      "href": "/audio-books/type/science/"
+    },
+    {
+      "name": "Self-help",
+      "href": "/audio-books/type/self-help/"
+    },
+    {
+      "name": "Spiritual & Religious",
+      "href": "/audio-books/type/spiritual/"
+    },
+    {
+      "name": "Sport & Recreation",
+      "href": "/audio-books/type/sports/"
+    },
+    {
+      "name": "Suspense",
+      "href": "/audio-books/type/suspense/"
+    },
+    {
+      "name": "Thriller",
+      "href": "/audio-books/type/thriller/"
+    },
+    {
+      "name": "True Crime",
+      "href": "/audio-books/type/true-crime/"
+    },
+    {
+      "name": "Tutorial",
+      "href": "/audio-books/type/tutorial/"
+    },
+    {
+      "name": "Westerns",
+      "href": "/audio-books/type/westerns/"
+    },
+    {
+      "name": "Zombies",
+      "href": "/audio-books/type/zombies/"
+    },
+    {
+      "name": "Other",
+      "href": "/audio-books/type/other/"
+    }
+  ],
+  "modifiers": [
+    {
+      "name": "Anthology",
+      "href": "/audio-books/type/anthology/"
+    },
+    {
+      "name": "Bestsellers",
+      "href": "/audio-books/type/bestsellers/"
+    },
+    {
+      "name": "Classic",
+      "href": "/audio-books/type/classic/"
+    },
+    {
+      "name": "Documentary",
+      "href": "/audio-books/type/documentary/"
+    },
+    {
+      "name": "Full Cast",
+      "href": "/audio-books/type/full-cast/"
+    },
+    {
+      "name": "Libertarian",
+      "href": "/audio-books/type/libertarian/"
+    },
+    {
+      "name": "Military",
+      "href": "/audio-books/type/military/"
+    },
+    {
+      "name": "Novel",
+      "href": "/audio-books/type/novel/"
+    },
+    {
+      "name": "Short Story",
+      "href": "/audio-books/type/short-story/"
+    }
+  ]
+}

@@ -20,6 +20,7 @@
     "express-session": "^1.18.1",
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
+    "node-cron": "^3.0.3",
     "p-limit": "^3.1.0",
     "webtorrent": "^2.5.19"
   }

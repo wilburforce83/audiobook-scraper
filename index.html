@@ -1,211 +1,489 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Audiobook Scraper</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Audiobook Scraper</title>
 
-  <!-- UIkit core + icons -->
-  <link rel="stylesheet" href="/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit-icons.min.js"></script>
-  <style>
-    /* Modal styles */
-    #downloadModal .uk-modal-dialog {
-      max-width: 600px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      text-align: center;
+    <!-- UIkit core + icons -->
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit-icons.min.js"></script>
+    <style>
+      /* Modal styles */
+      #downloadModal .uk-modal-dialog {
+        max-width: 600px;
+        margin: auto;
+        background: #444444; /* Updated modal background */
+        padding: 30px;
+        border-radius: 8px;
+        text-align: center;
+        color: var(--uk-text-color);
+      }
+
+      #downloadBtn {
+  position: fixed !important; /* Ensure it's fixed in place */
+  top: 2rem !important;       /* Adjust vertical offset as desired */
+  right: 2rem !important;     /* Adjust horizontal offset as desired */
+  z-index: 9999;              /* High z-index so it's on top of other elements */
+  padding: 0.75rem 1.25rem;   /* Extra padding if needed */
+  background-color: #28a745 !important; /* Green background */
+  border-color: #28a745 !important;     /* Match border to background */
+  color: #fff !important;               /* White text */
+  border-radius: 4px;                   /* Optional: slightly rounded corners */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Optional: subtle drop shadow */
+}
+
+      /* Sidebar styling */
+      #lsidebar {
+        padding: 10px;
+        background: var(--uk-background-primary);
+        border: 1px solid var(--uk-border-color);
+        border-radius: 4px;
+        color: var(--uk-text-color);
+        max-height: 95vh;
+        overflow-y: auto;
+      }
+      /* Center the modal vertically and horizontally */
+      #downloadModal {
+        display: none;
+      }
+      /* Log feed: show only the latest message */
+      #logFeed {
+        margin-top: 20px;
+        font-family: monospace;
+        font-size: 1.1em;
+        color: var(--uk-text-color);
+        min-height: 2em;
+      }
+      /* Fade in effect for log updates */
+      .fade {
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+      .fade.visible {
+        opacity: 1;
+      }
+      /* Sidebar sections */
+      .sidebar-section {
+        margin-bottom: 20px;
+      }
+      .sidebar-section h2 {
+        margin-bottom: 10px;
+      }
+      #lsidebar ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      #lsidebar li {
+        margin-bottom: 5px;
+      }
+      #lsidebar a {
+        color: var(--uk-accent-color);
+        text-decoration: none;
+        cursor: pointer;
+      }
+      #lsidebar a:hover {
+        text-decoration: underline;
+      }
+
+      .logo {
+  max-width: 70px; /* Adjust as needed */
+  height: auto;
+}
+
+.uk-heading-medium span {
+  /* This uses the CSS clamp() function to scale the font size between 1.5rem and 3rem based on viewport width */
+  font-size: clamp(1.5rem, 5vw, 3rem);
+}
+
+/* Small card styling for each item */
+.collection-card {
+      font-size: 0.75rem; /* Make text small to avoid clutter */
+      margin-bottom: 6px;
     }
-    /* Center the modal vertically and horizontally */
-    #downloadModal {
-      display: none;
+    .collection-card .item-title {
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 500;
     }
-    /* Log feed: show only the latest message */
-    #logFeed {
-      margin-top: 20px;
-      font-family: monospace;
-      font-size: 1.1em;
-      color: #333;
-      min-height: 2em;
+    .collection-card .item-status {
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
-    /* Fade in effect for log updates */
-    .fade {
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-    }
-    .fade.visible {
-      opacity: 1;
-    }
-  </style>
-</head>
-<body class="uk-background-secondary uk-light">
 
-  <div class="uk-container uk-margin-top uk-margin-large-bottom">
-    <div uk-grid class="uk-flex-middle uk-margin-bottom">
-      <div class="uk-width-expand uk-flex uk-flex-middle">
-        <img src="/audiobook.png" alt="Logo" class="logo uk-margin-right">
-        <h1 class="uk-heading-line uk-heading-medium"><span>Audiobook Scraper</span></h1>
-      </div>
-      <div class="uk-width-auto uk-text-right">
-        <button id="downloadBtn" class="uk-button uk-button-secondary uk-position-fixed uk-position-top-right uk-margin-large uk-hidden">Download to Library</button>
-      </div>
-    </div>
-
-    <form id="searchForm" class="uk-grid-small uk-grid" uk-grid>
-      <div class="uk-width-expand">
-        <input id="searchInput" class="uk-input" type="text" placeholder="Enter search term" required>
-      </div>
-      <div class="uk-width-auto">
-        <button type="submit" class="uk-button uk-button-primary">Search</button>
-      </div>
-    </form>
-
-    <div id="loadingSpinner" class="uk-flex uk-flex-center uk-margin-large uk-hidden">
-      <span uk-spinner="ratio: 2"></span>
-    </div>
-
-    <section id="resultsSection" class="uk-margin-top uk-hidden">
-      <table class="uk-table uk-table-hover uk-table-divider uk-table-responsive uk-table-middle">
-        <thead>
-          <tr>
-            <th><input type="checkbox" id="selectAll"></th>
-            <th>Title</th>
-            <th>Details URL</th>
-            <th>Metadata</th>
-            <th>Image</th>
-          </tr>
-        </thead>
-        <tbody id="resultsTable"></tbody>
-      </table>
-    </section>
-  </div>
-
-  <!-- Download Progress Modal -->
-  <div id="downloadModal" uk-modal>
-    <div class="uk-modal-dialog uk-flex uk-flex-center uk-flex-middle">
-      <button class="uk-modal-close-default" type="button" uk-close></button>
-      <div>
-        <h2 class="uk-heading-medium">Processing Request</h2>
-        <div id="downloadSpinner" class="uk-margin">
-          <span uk-spinner="ratio: 3"></span>
+    /* Example color classes for different statuses */
+    .status-wanted { color: #f0ad4e; }     /* or background if you prefer a badge style */
+    .status-snatched { color: #0275d8; }
+    .status-torrented { color: #5cb85c; }
+    .status-processed { color: #aaa; }
+    .status-failed { color: #d9534f; }
+    </style>
+  </head>
+  <body class="uk-background-secondary uk-light">
+    <div class="uk-container-expand uk-margin-top uk-margin-large-bottom">
+      <div uk-grid>
+        <!-- Left Sidebar Column -->
+        <div class="uk-width-1-4">
+          <div id="lsidebar">
+            <p>Loading categories...</p>
+          </div>
         </div>
-        <div id="logFeed"><span class="fade">Waiting for updates...</span></div>
+        <!-- Main Content Column -->
+        <div class="uk-width-1-2">
+          <div uk-grid class="uk-flex-middle uk-margin-bottom">
+            <div uk-grid class="uk-flex uk-flex-middle uk-margin-bottom">
+              <div class="uk-width-expand uk-flex uk-flex-middle">
+                <!-- Restrict the logo size so it doesn't tower over the text -->
+                <img src="/audiobook.png" alt="Logo" class="logo uk-margin-right" style="max-height: 50px;" />
+                <h1 class="uk-heading-line uk-heading-medium" style="margin: 0;">
+                  <span>Audiobook Scraper</span>
+                </h1>
+              </div>
+            </div>
+            
+            <div class="uk-width-auto uk-text-right">
+              <button id="downloadBtn" class="uk-button uk-button-secondary uk-position-fixed uk-position-top-right uk-margin-large uk-hidden">Request Books</button>
+            </div>
+          </div>
+
+          <!-- Search Form -->
+          <form id="searchForm" class="uk-grid-small uk-grid" uk-grid>
+            <div class="uk-width-expand">
+              <input id="searchInput" class="uk-input" type="text" placeholder="Enter search term" required />
+            </div>
+            <div class="uk-width-auto">
+              <button type="submit" class="uk-button uk-button-primary">Search</button>
+            </div>
+          </form>
+
+          <div id="loadingSpinner" class="uk-flex uk-flex-center uk-margin-large uk-hidden">
+            <span uk-spinner="ratio: 2"></span>
+          </div>
+
+          <!-- Results Table -->
+          <section id="resultsSection" class="uk-margin-top uk-hidden">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-responsive uk-table-middle">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAll" /></th>
+                  <th>Title</th>
+                  <th>Details URL</th>
+                  <th>Metadata</th>
+                  <th>Image</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTable"></tbody>
+            </table>
+          </section>
+        </div>
+        <div class="uk-width-1-4">
+          <div id="rsidebar">
+            <p>Loading statuses...</p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script>
-    $(function() {
-      $('#searchForm').on('submit', function(e) {
-        e.preventDefault();
-        let query = $('#searchInput').val().trim();
-        if (!query) return;
+    <!-- Download Progress Modal -->
+    <div id="downloadModal" uk-modal>
+      <div class="uk-modal-dialog uk-flex uk-flex-center uk-flex-middle">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div>
+          <h2 class="uk-heading-medium">Processing Request</h2>
+          <div id="downloadSpinner" class="uk-margin">
+            <span uk-spinner="ratio: 3"></span>
+          </div>
+          <div id="logFeed"><span class="fade">Waiting for updates...</span></div>
+        </div>
+      </div>
+    </div>
 
-        $('#resultsTable').empty();
-        $('#loadingSpinner').removeClass('uk-hidden');
-        $('#downloadBtn').addClass('uk-hidden');
-        $('#resultsSection').addClass('uk-hidden');
-
-        $.get('/search', { q: query })
-          .done(data => {
-            $('#loadingSpinner').addClass('uk-hidden');
-            if (!data.length) {
-              $('#resultsTable').append('<tr><td colspan="5">No results found.</td></tr>');
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+      // Function to load the left sidebar data from /lsidebar
+      function loadSidebar() {
+        $.get("/lsidebar")
+          .done((data) => {
+            if (
+              (!data.categories || !data.categories.length) &&
+              (!data.modifiers || !data.modifiers.length)
+            ) {
+              $("#lsidebar").html("<p>No categories found.</p>");
             } else {
-              data.forEach(item => {
-                $('#resultsTable').append(`
+              let sidebarHtml = "";
+              if (data.categories && data.categories.length) {
+                sidebarHtml +=
+                  '<div class="sidebar-section"><h2>Category</h2><ul class="uk-nav uk-nav-default">';
+                data.categories.forEach((link) => {
+                  sidebarHtml += `<li><a href="#" class="browseLink" data-path="${link.href}">${link.name}</a></li>`;
+                });
+                sidebarHtml += "</ul></div>";
+              }
+              if (data.modifiers && data.modifiers.length) {
+                sidebarHtml +=
+                  '<div class="sidebar-section"><h2>Category Modifiers</h2><ul class="uk-nav uk-nav-default">';
+                data.modifiers.forEach((link) => {
+                  sidebarHtml += `<li><a href="#" class="browseLink" data-path="${link.href}">${link.name}</a></li>`;
+                });
+                sidebarHtml += "</ul></div>";
+              }
+              $("#lsidebar").html(sidebarHtml);
+            }
+          })
+          .fail(() => {
+            console.error("Error fetching sidebar data.");
+            $("#lsidebar").html("<p>Error loading categories.</p>");
+          });
+      }
+
+      // Function to load new books data from /newbooks and populate the main table
+      function loadNewBooksContent() {
+        $("#resultsTable").empty();
+        $("#loadingSpinner").removeClass("uk-hidden");
+        $("#downloadBtn").addClass("uk-hidden");
+        $("#resultsSection").addClass("uk-hidden");
+
+        $.get("/newbooks")
+          .done((data) => {
+            $("#loadingSpinner").addClass("uk-hidden");
+            if (!data.length) {
+              $("#resultsTable").append('<tr><td colspan="5">No new books found.</td></tr>');
+            } else {
+              data.forEach((item) => {
+                $("#resultsTable").append(`
                   <tr>
                     <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
                     <td>${item.title}</td>
                     <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
                     <td>${item.metaText}</td>
-                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ''}</td>
+                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
                   </tr>
                 `);
               });
             }
-            $('#resultsSection').removeClass('uk-hidden');
+            $("#resultsSection").removeClass("uk-hidden");
           })
           .fail(() => {
-            $('#loadingSpinner').addClass('uk-hidden');
-            console.error('Error fetching results.');
+            $("#loadingSpinner").addClass("uk-hidden");
+            console.error("Error fetching new books.");
           });
-      });
+      }
 
-      $(document).on('change', '.selectRow', () => {
-        $('#downloadBtn').toggleClass('uk-hidden', $('.selectRow:checked').length === 0);
-      });
+      // Function to load browsing content via /browse route based on selected path
+      function loadBrowseContent(path) {
+        $("#resultsTable").empty();
+        $("#loadingSpinner").removeClass("uk-hidden");
+        $("#downloadBtn").addClass("uk-hidden");
+        $("#resultsSection").addClass("uk-hidden");
 
-      $('#selectAll').change(function() {
-        $('.selectRow').prop('checked', this.checked).trigger('change');
-      });
+        $.get("/browse", { p: path })
+          .done((data) => {
+            $("#loadingSpinner").addClass("uk-hidden");
+            if (!data.length) {
+              $("#resultsTable").append('<tr><td colspan="5">No results found.</td></tr>');
+            } else {
+              data.forEach((item) => {
+                $("#resultsTable").append(`
+                  <tr>
+                    <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
+                    <td>${item.title}</td>
+                    <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
+                    <td>${item.metaText}</td>
+                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
+                  </tr>
+                `);
+              });
+            }
+            $("#resultsSection").removeClass("uk-hidden");
+          })
+          .fail(() => {
+            $("#loadingSpinner").addClass("uk-hidden");
+            console.error("Error fetching browse results.");
+          });
+      }
 
-      $('#downloadBtn').click(function() {
-        let urls = $('.selectRow:checked').map((_, el) => $(el).data('details-url')).get();
-        if (!urls.length) return;
-        openDownloadModal();
-        $.ajax({
-          url: '/download',
-          method: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify({ detailsUrls: urls }),
-        }).done(() => {
-          // No toast notifications; progress is shown via live logs.
-          console.log('Download initiated.');
-        }).fail(() => {
-          closeDownloadModal();
-          console.error('Error initiating download.');
-        });
-      });
-    });
+      // Named function to perform search
+      function performSearch(e) {
+        e.preventDefault();
+        let query = $("#searchInput").val().trim();
+        if (!query) return;
+        $("#resultsTable").empty();
+        $("#loadingSpinner").removeClass("uk-hidden");
+        $("#downloadBtn").addClass("uk-hidden");
+        $("#resultsSection").addClass("uk-hidden");
 
-    // Opens the modal and establishes an SSE connection for live log updates
-    function openDownloadModal() {
-      let modal = UIkit.modal('#downloadModal');
-      modal.show();
-      // Update logFeed with initial text
-      updateLog('Processing...');
-      
-      const eventSource = new EventSource('/download/stream');
-      window.downloadEventSource = eventSource;
-      
-      eventSource.onmessage = function(event) {
-        // Replace logFeed text with new message until next event arrives
-        updateLog(event.data);
+        $.get("/search", { q: query })
+          .done((data) => {
+            $("#loadingSpinner").addClass("uk-hidden");
+            if (!data.length) {
+              $("#resultsTable").append('<tr><td colspan="5">No results found.</td></tr>');
+            } else {
+              data.forEach((item) => {
+                $("#resultsTable").append(`
+                  <tr>
+                    <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
+                    <td>${item.title}</td>
+                    <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
+                    <td>${item.metaText}</td>
+                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
+                  </tr>
+                `);
+              });
+            }
+            $("#resultsSection").removeClass("uk-hidden");
+          })
+          .fail(() => {
+            $("#loadingSpinner").addClass("uk-hidden");
+            console.error("Error fetching results.");
+          });
+      }
+
+          // Called on page load to establish SSE for collection changes
+    function initCollectionSSE() {
+      const source = new EventSource('/collection/stream');
+      source.onmessage = function(event) {
+        const collection = JSON.parse(event.data);
+        renderCollection(collection);
       };
-      
-      eventSource.addEventListener('done', function(event) {
-        updateLog('Download complete.');
-        // After receiving final data, close modal after 5 seconds
-        setTimeout(() => {
-          modal.hide();
-          eventSource.close();
-        }, 5000);
-      });
+      source.onerror = function(err) {
+        console.error('SSE error on /collection/stream:', err);
+      };
     }
 
-    function closeDownloadModal() {
-      UIkit.modal('#downloadModal').hide();
-      if (window.downloadEventSource) {
-        window.downloadEventSource.close();
+    // Renders the collection data into #rsidebar as small "cards"
+    function renderCollection(collection) {
+      const container = $('#rsidebar');
+      container.empty();
+
+      if (!collection.length) {
+        container.html('<p>No items in collection.</p>');
+        return;
+      }
+
+      let html = '';
+      collection.forEach(item => {
+        const statusClass = getStatusClass(item.status);
+        html += `
+          <div class="uk-card uk-card-default uk-card-small uk-margin-small collection-card">
+            <div class="uk-card-body">
+              <span class="item-title">${item.title}</span>
+              <span class="item-status ${statusClass}">${item.status}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      container.html(html);
+    }
+
+    // Return a CSS class name based on the status for color-coding
+    function getStatusClass(status) {
+      switch (status) {
+        case 'wanted':    return 'status-wanted';
+        case 'snatched':  return 'status-snatched';
+        case 'torrented': return 'status-torrented';
+        case 'processed': return 'status-processed';
+        case 'failed':    return 'status-failed';
+        default:          return '';
       }
     }
 
-    // Updates the log feed with the current message (replaces previous text)
-    function updateLog(message) {
-      let logContainer = $('#logFeed');
-      logContainer.empty();
-      let logLine = $('<span class="fade"></span>').text(message);
-      logContainer.append(logLine);
-      // Force the fade-in effect by adding 'visible' after a short delay
-      setTimeout(() => {
-        logLine.addClass('visible');
-      }, 50);
-    }
-  </script>
-</body>
+      $(function () {
+        // Load the sidebar and new books on page load
+        loadSidebar();
+        loadNewBooksContent();
+        // Initialize SSE for the collection
+      initCollectionSSE();
+
+        $("#searchForm").on("submit", performSearch);
+
+        $(document).on("change", ".selectRow", () => {
+          $("#downloadBtn").toggleClass(
+            "uk-hidden",
+            $(".selectRow:checked").length === 0
+          );
+        });
+
+        $("#selectAll").change(function () {
+          $(".selectRow").prop("checked", this.checked).trigger("change");
+        });
+
+        $("#downloadBtn").click(function () {
+  // Gather selected rows
+  let urls = [];
+  let titles = [];
+
+  $(".selectRow:checked").each((_, el) => {
+    let $row = $(el).closest("tr");
+    // The details URL is stored in data-details-url
+    let detailsUrl = $(el).data("details-url");
+    // The title is in the second table cell (nth-child(2))
+    let titleText = $row.find("td:nth-child(2)").text().trim();
+
+    urls.push(detailsUrl);
+    titles.push(titleText);
+  });
+
+  if (!urls.length) return;
+
+  openDownloadModal();
+
+  $.ajax({
+    url: "/download",
+    method: "POST",
+    contentType: "application/json",
+    data: JSON.stringify({ detailsUrls: urls, titles: titles }),
+  })
+    .done(() => {
+      console.log("Download initiated.");
+      closeDownloadModal();
+    })
+    .fail(() => {
+      closeDownloadModal();
+      console.error("Error initiating download.");
+    });
+});
+
+      });
+
+      // Download Modal Functions
+      function openDownloadModal() {
+        let modal = UIkit.modal("#downloadModal");
+        modal.show();
+        updateLog("Processing...");
+        const eventSource = new EventSource("/download/stream");
+        window.downloadEventSource = eventSource;
+        eventSource.onmessage = function (event) {
+          updateLog(event.data);
+        };
+      }
+
+      function closeDownloadModal() {
+        UIkit.modal("#downloadModal").hide();
+        if (window.downloadEventSource) {
+          window.downloadEventSource.close();
+        }
+      }
+
+      // Update log feed with the current message (replacing previous text)
+      function updateLog(message) {
+        let logContainer = $("#logFeed");
+        logContainer.empty();
+        let logLine = $('<span class="fade"></span>').text(message);
+        logContainer.append(logLine);
+        setTimeout(() => {
+          logLine.addClass("visible");
+        }, 50);
+      }
+      // Attach a delegated click handler to .browseLink items
+$(document).on('click', '.browseLink', function(e) {
+  e.preventDefault();
+  const path = $(this).data('path');
+  loadBrowseContent(path);
+});
+
+    </script>
+  </body>
 </html>
