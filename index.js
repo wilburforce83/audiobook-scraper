@@ -7,6 +7,9 @@ const path = require('path');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');
+const EventEmitter = require('events');
+const downloadEmitter = new EventEmitter();
+
 let client;
 (async () => {
   const { default: WebTorrent } = await import('webtorrent');
@@ -21,6 +24,7 @@ const bodyParser = require('body-parser');
 
 const USERNAME = process.env.AUTH_USERNAME;
 const PASSWORD = process.env.AUTH_PASSWORD;
+const TORRENT_TIMEOUT = process.env.TORRENT_TIMEOUT || 30000;
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
@@ -264,7 +268,7 @@ async function getTorrentLinkFromDetailsPage(detailsUrl) {
   /**
  * Helper: wait for metadata or timeout
  */
-function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
+function fetchMetadataOrTimeout(torrent, timeoutMs = TORRENT_TIMEOUT) {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         torrent.destroy();
@@ -295,19 +299,30 @@ function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
         const magnet = `magnet:?xt=urn:btih:${infoHash}`;
         const torrentPath = path.join(LIBRARY_PATH, `${infoHash}.torrent`);
   
-        console.log(`🔍 Starting metadata fetch for ${infoHash}`);
+        const msg1 = `🔍 Starting metadata fetch for ${infoHash}`;
+        console.log(msg1);
+        downloadEmitter.emit('log', msg1);
+  
         await new Promise((resolve, reject) => {
           const torrent = client.add(magnet, { path: LIBRARY_PATH });
-          fetchMetadataOrTimeout(torrent, 25000)
+          fetchMetadataOrTimeout(torrent, TORRENT_TIMEOUT)
             .then(() => {
-              console.log(`✅ Metadata fetched for ${infoHash}`);
+              const msg2 = `✅ Metadata fetched for ${infoHash}`;
+              console.log(msg2);
+              downloadEmitter.emit('log', msg2);
+  
               fs.writeFileSync(torrentPath, torrent.torrentFile);
-              console.log(`💾 Saved .torrent to ${torrentPath}`);
+              const msg3 = `💾 Saved .torrent to ${torrentPath}`;
+              console.log(msg3);
+              downloadEmitter.emit('log', msg3);
+  
               torrent.destroy();
               resolve();
             })
             .catch(err => {
-              console.error(`❌ ${infoHash} failed: ${err.message}`);
+              const msgErr = `❌ ${infoHash} failed: ${err.message}`;
+              console.error(msgErr);
+              downloadEmitter.emit('log', msgErr);
               reject(err);
             });
         });
@@ -318,8 +333,48 @@ function fetchMetadataOrTimeout(torrent, timeoutMs = 10000) {
       }
     }
   
+    // Emit a "done" event with final JSON results so the client knows we're finished.
+    downloadEmitter.emit('log', 'Download process completed.');
+    downloadEmitter.emit('done', JSON.stringify(results));
+  
+    // Also respond with the final results (in case the client needs them)
     res.json(results);
   });
+  
+
+
+  // SSE endpoint for live download logs
+app.get('/download/stream', requireAuth, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+
+  // send a comment every 30 sec to keep connection alive
+  const interval = setInterval(() => {
+    res.write(': keep-alive\n\n');
+  }, 30000);
+
+  // Listener for log events
+  const logListener = (msg) => {
+    res.write(`data: ${msg}\n\n`);
+  };
+
+  // Listener for done event (we send event type "done")
+  const doneListener = (data) => {
+    res.write(`event: done\ndata: ${data}\n\n`);
+  };
+
+  downloadEmitter.on('log', logListener);
+  downloadEmitter.on('done', doneListener);
+
+  req.on('close', () => {
+    clearInterval(interval);
+    downloadEmitter.removeListener('log', logListener);
+    downloadEmitter.removeListener('done', doneListener);
+    res.end();
+  });
+});
+
   
   
   

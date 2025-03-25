@@ -9,6 +9,30 @@
   <link rel="stylesheet" href="/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit-icons.min.js"></script>
+  <style>
+    /* Additional styles for the download modal and log feed */
+    #downloadModal .uk-modal-dialog {
+      background: rgba(0, 0, 0, 0.8);
+    }
+    #logFeed {
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 0 auto;
+      width: 80%;
+      font-family: monospace;
+      background: #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .logLine {
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .logLine.visible {
+      opacity: 1;
+    }
+  </style>
 </head>
 <body class="uk-background-secondary uk-light">
 
@@ -52,6 +76,20 @@
     </section>
   </div>
 
+  <!-- Download Progress Modal -->
+  <div id="downloadModal" class="uk-modal-full" uk-modal>
+    <div class="uk-modal-dialog uk-flex uk-flex-center uk-flex-middle">
+      <button class="uk-modal-close-full" type="button" uk-close></button>
+      <div class="uk-text-center">
+        <h2 class="uk-heading-medium">Processing Request</h2>
+        <div id="downloadSpinner" class="uk-margin-small">
+          <span uk-spinner="ratio: 3"></span>
+        </div>
+        <div id="logFeed"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <script>
     function showToast(message, status) {
@@ -72,7 +110,6 @@
         $.get('/search', { q: query })
           .done(data => {
             $('#loadingSpinner').addClass('uk-hidden');
-
             if (!data.length) {
               $('#resultsTable').append('<tr><td colspan="5">No results found.</td></tr>');
             } else {
@@ -107,22 +144,59 @@
       $('#downloadBtn').click(function() {
         let urls = $('.selectRow:checked').map((_, el) => $(el).data('details-url')).get();
         if (!urls.length) return;
-
-        $('#loadingSpinner').removeClass('uk-hidden');
+        openDownloadModal();
         $.ajax({
           url: '/download',
           method: 'POST',
           contentType: 'application/json',
           data: JSON.stringify({ detailsUrls: urls }),
         }).done(() => {
-          $('#loadingSpinner').addClass('uk-hidden');
-          showToast('Download initiated. Check server logs for status.', 'success');
+          showToast('Download initiated. Check progress below.', 'success');
         }).fail(() => {
-          $('#loadingSpinner').addClass('uk-hidden');
+          closeDownloadModal();
           showToast('Error initiating download.', 'danger');
         });
       });
     });
+
+    // Append modal is already in the HTML above.
+    function openDownloadModal() {
+      UIkit.modal('#downloadModal').show();
+      $('#logFeed').empty();
+      // Open SSE connection to receive live log updates
+      const eventSource = new EventSource('/download/stream');
+      window.downloadEventSource = eventSource;
+      eventSource.onmessage = function(event) {
+        appendLog(event.data);
+      };
+      eventSource.addEventListener('done', function(event) {
+        appendLog('Download complete.');
+        setTimeout(() => {
+          UIkit.modal('#downloadModal').hide();
+          eventSource.close();
+        }, 1500);
+      });
+    }
+
+    function closeDownloadModal() {
+      UIkit.modal('#downloadModal').hide();
+      if (window.downloadEventSource) {
+        window.downloadEventSource.close();
+      }
+    }
+
+    // Function to append a log message with a fade-in effect
+    function appendLog(message) {
+      const logLine = $('<div class="logLine"></div>').text(message);
+      $('#logFeed').append(logLine);
+      // Force reflow for transition to work
+      logLine[0].offsetWidth;
+      logLine.addClass('visible');
+      // Optionally remove the "visible" class after a short delay
+      setTimeout(() => {
+        logLine.removeClass('visible');
+      }, 1000);
+    }
   </script>
 </body>
 </html>
