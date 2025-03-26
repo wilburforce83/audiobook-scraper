@@ -10,6 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/uikit@3/dist/js/uikit-icons.min.js"></script>
     <style>
+      html, body {
+  overflow: hidden; /* Prevent scrolling on the main page */
+}
       /* Modal styles */
       #downloadModal .uk-modal-dialog {
         max-width: 600px;
@@ -22,9 +25,6 @@
       }
 
       #downloadBtn {
-        position: fixed !important; /* Ensure it's fixed in place */
-        top: 2rem !important; /* Adjust vertical offset as desired */
-        right: 2rem !important; /* Adjust horizontal offset as desired */
         z-index: 9999; /* High z-index so it's on top of other elements */
         padding: 0.75rem 1.25rem; /* Extra padding if needed */
         background-color: #28a745 !important; /* Green background */
@@ -41,7 +41,7 @@
         border: 1px solid var(--uk-border-color);
         border-radius: 4px;
         color: var(--uk-text-color);
-        max-height: 95vh;
+        max-height: 85vh;
         overflow-y: auto;
       }
       /* Sidebar styling */
@@ -51,7 +51,7 @@
         border: 1px solid var(--uk-border-color);
         border-radius: 4px;
         color: var(--uk-text-color);
-        max-height: 95vh;
+        max-height: 85vh;
         overflow-y: auto;
       }
       /* Sidebar styling */
@@ -61,7 +61,7 @@
         border: 1px solid var(--uk-border-color);
         border-radius: 4px;
         color: var(--uk-text-color);
-        max-height: 75vh;
+        max-height: 77vh;
         overflow-y: auto;
       }
 
@@ -154,6 +154,57 @@
   </head>
   <body class="uk-background-secondary uk-light">
     <div class="uk-container-expand uk-margin-top uk-margin-large-bottom">
+      <header class="uk-container-expand" style="padding: 0 10px; padding-bottom: 10px;">
+        <div class="uk-grid-small uk-flex-middle uk-width-expand" uk-grid>
+          <!-- Left Column: Logo and Title (25% of width) -->
+          <div class="uk-width-1-4">
+            <div class="uk-flex uk-flex-middle">
+              <img
+                src="/audiobook.png"
+                alt="Logo"
+                class="logo uk-margin-small-right"
+                style="max-height: 50px;"
+              />
+              <h2 class="uk-heading-line uk-heading-medium" style="margin: 0; font-size: 1.25rem; display: inline-block;">
+                Audiobookshelf - ABB downloader
+              </h2>
+            </div>
+          </div>
+          <!-- Middle Column: Search Form (50% of width) -->
+          <div class="uk-width-1-2 uk-text-center">
+            <form id="searchForm" class="uk-grid-small uk-grid" uk-grid>
+              <div class="uk-width-expand">
+                <input
+                  id="searchInput"
+                  class="uk-input"
+                  type="text"
+                  placeholder="Enter search term"
+                  required
+                />
+              </div>
+              <div class="uk-width-auto">
+                <button type="submit" class="uk-button uk-button-primary">Search</button>
+              </div>
+            </form>
+          </div>
+          <!-- Right Column: GitHub Icon (25% of width) -->
+          <div class="uk-width-1-4 uk-text-right">
+            <a href="https://github.com/wilburforce83/audiobook-scraper" target="_blank">
+              <svg style="fill: #A56C3B;" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                  0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58
+                  1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11
+                  0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.27.82 2.15
+                  0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8
+                  c0-4.42-3.58-8-8-8z"></path>
+              </svg>
+              
+            </a>
+          </div>
+        </div>
+      </header>
+      
+      
       <div uk-grid>
         <!-- Left Sidebar Column -->
         <div class="uk-width-1-4">
@@ -165,47 +216,18 @@
         <div class="uk-width-1-2">
           <div uk-grid class="uk-flex-middle uk-margin-bottom">
             <div uk-grid class="uk-flex uk-flex-middle uk-margin-bottom">
-              <div class="uk-width-expand uk-flex uk-flex-middle">
-                <!-- Restrict the logo size so it doesn't tower over the text -->
-                <img
-                  src="/audiobook.png"
-                  alt="Logo"
-                  class="logo uk-margin-right"
-                  style="max-height: 50px"
-                />
-                <h1 class="uk-heading-line uk-heading-medium" style="margin: 0">
-                  <span>Audiobook Scraper</span>
-                </h1>
-              </div>
+              
             </div>
 
-            <div class="uk-width-auto uk-text-right">
+            <div class="uk-width-expand uk-text-right">
               <button
                 id="downloadBtn"
-                class="uk-button uk-button-secondary uk-position-fixed uk-position-top-right uk-margin-large uk-hidden"
+                class="uk-button uk-button-secondary uk-width-1-1 uk-hidden"
               >
                 Request Books
               </button>
             </div>
           </div>
-
-          <!-- Search Form -->
-          <form id="searchForm" class="uk-grid-small uk-grid" uk-grid>
-            <div class="uk-width-expand">
-              <input
-                id="searchInput"
-                class="uk-input"
-                type="text"
-                placeholder="Enter search term"
-                required
-              />
-            </div>
-            <div class="uk-width-auto">
-              <button type="submit" class="uk-button uk-button-primary">
-                Search
-              </button>
-            </div>
-          </form>
 
           <div
             id="loadingSpinner"
