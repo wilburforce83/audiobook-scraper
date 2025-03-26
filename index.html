@@ -22,17 +22,17 @@
       }
 
       #downloadBtn {
-  position: fixed !important; /* Ensure it's fixed in place */
-  top: 2rem !important;       /* Adjust vertical offset as desired */
-  right: 2rem !important;     /* Adjust horizontal offset as desired */
-  z-index: 9999;              /* High z-index so it's on top of other elements */
-  padding: 0.75rem 1.25rem;   /* Extra padding if needed */
-  background-color: #28a745 !important; /* Green background */
-  border-color: #28a745 !important;     /* Match border to background */
-  color: #fff !important;               /* White text */
-  border-radius: 4px;                   /* Optional: slightly rounded corners */
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Optional: subtle drop shadow */
-}
+        position: fixed !important; /* Ensure it's fixed in place */
+        top: 2rem !important; /* Adjust vertical offset as desired */
+        right: 2rem !important; /* Adjust horizontal offset as desired */
+        z-index: 9999; /* High z-index so it's on top of other elements */
+        padding: 0.75rem 1.25rem; /* Extra padding if needed */
+        background-color: #28a745 !important; /* Green background */
+        border-color: #28a745 !important; /* Match border to background */
+        color: #fff !important; /* White text */
+        border-radius: 4px; /* Optional: slightly rounded corners */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Optional: subtle drop shadow */
+      }
 
       /* Sidebar styling */
       #lsidebar {
@@ -44,8 +44,8 @@
         max-height: 95vh;
         overflow-y: auto;
       }
-       /* Sidebar styling */
-       #rsidebar {
+      /* Sidebar styling */
+      #rsidebar {
         padding: 10px;
         background: var(--uk-background-primary);
         border: 1px solid var(--uk-border-color);
@@ -54,8 +54,8 @@
         max-height: 95vh;
         overflow-y: auto;
       }
-       /* Sidebar styling */
-       #resultsSection {
+      /* Sidebar styling */
+      #resultsSection {
         padding: 10px;
         background: var(--uk-background-primary);
         border: 1px solid var(--uk-border-color);
@@ -109,37 +109,47 @@
       }
 
       .logo {
-  max-width: 70px; /* Adjust as needed */
-  height: auto;
-}
+        max-width: 70px; /* Adjust as needed */
+        height: auto;
+      }
 
-.uk-heading-medium span {
-  /* This uses the CSS clamp() function to scale the font size between 1.5rem and 3rem based on viewport width */
-  font-size: clamp(1.5rem, 5vw, 3rem);
-}
+      .uk-heading-medium span {
+        /* This uses the CSS clamp() function to scale the font size between 1.5rem and 3rem based on viewport width */
+        font-size: clamp(1.5rem, 5vw, 3rem);
+      }
 
-/* Small card styling for each item */
-.collection-card {
-      font-size: 0.75rem; /* Make text small to avoid clutter */
-      margin-bottom: 6px;
-    }
-    .collection-card .item-title {
-      display: block;
-      margin-bottom: 2px;
-      font-weight: 500;
-    }
-    .collection-card .item-status {
-      font-size: 0.7rem;
-      padding: 2px 4px;
-      border-radius: 3px;
-    }
+      /* Small card styling for each item */
+      .collection-card {
+        font-size: 0.75rem; /* Make text small to avoid clutter */
+        margin-bottom: 6px;
+      }
+      .collection-card .item-title {
+        display: block;
+        margin-bottom: 2px;
+        font-weight: 500;
+      }
+      .collection-card .item-status {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
 
-    /* Example color classes for different statuses */
-    .status-wanted { color: #f0ad4e; }     /* or background if you prefer a badge style */
-    .status-snatched { color: #0275d8; }
-    .status-downloading { color: #5cb85c; }
-    .status-completed { color: #aaa; }
-    .status-failed { color: #d9534f; }
+      /* Example color classes for different statuses */
+      .status-wanted {
+        color: #f0ad4e;
+      } /* or background if you prefer a badge style */
+      .status-snatched {
+        color: #0275d8;
+      }
+      .status-downloading {
+        color: #5cb85c;
+      }
+      .status-completed {
+        color: #aaa;
+      }
+      .status-failed {
+        color: #d9534f;
+      }
     </style>
   </head>
   <body class="uk-background-secondary uk-light">
@@ -157,40 +167,62 @@
             <div uk-grid class="uk-flex uk-flex-middle uk-margin-bottom">
               <div class="uk-width-expand uk-flex uk-flex-middle">
                 <!-- Restrict the logo size so it doesn't tower over the text -->
-                <img src="/audiobook.png" alt="Logo" class="logo uk-margin-right" style="max-height: 50px;" />
-                <h1 class="uk-heading-line uk-heading-medium" style="margin: 0;">
+                <img
+                  src="/audiobook.png"
+                  alt="Logo"
+                  class="logo uk-margin-right"
+                  style="max-height: 50px"
+                />
+                <h1 class="uk-heading-line uk-heading-medium" style="margin: 0">
                   <span>Audiobook Scraper</span>
                 </h1>
               </div>
             </div>
-            
+
             <div class="uk-width-auto uk-text-right">
-              <button id="downloadBtn" class="uk-button uk-button-secondary uk-position-fixed uk-position-top-right uk-margin-large uk-hidden">Request Books</button>
+              <button
+                id="downloadBtn"
+                class="uk-button uk-button-secondary uk-position-fixed uk-position-top-right uk-margin-large uk-hidden"
+              >
+                Request Books
+              </button>
             </div>
           </div>
 
           <!-- Search Form -->
           <form id="searchForm" class="uk-grid-small uk-grid" uk-grid>
             <div class="uk-width-expand">
-              <input id="searchInput" class="uk-input" type="text" placeholder="Enter search term" required />
+              <input
+                id="searchInput"
+                class="uk-input"
+                type="text"
+                placeholder="Enter search term"
+                required
+              />
             </div>
             <div class="uk-width-auto">
-              <button type="submit" class="uk-button uk-button-primary">Search</button>
+              <button type="submit" class="uk-button uk-button-primary">
+                Search
+              </button>
             </div>
           </form>
 
-          <div id="loadingSpinner" class="uk-flex uk-flex-center uk-margin-large uk-hidden">
+          <div
+            id="loadingSpinner"
+            class="uk-flex uk-flex-center uk-margin-large uk-hidden"
+          >
             <span uk-spinner="ratio: 2"></span>
           </div>
 
           <!-- Results Table -->
           <section id="resultsSection" class="uk-margin-top uk-hidden">
-            <table class="uk-table uk-table-hover uk-table-divider uk-table-responsive uk-table-middle">
+            <table
+              class="uk-table uk-table-hover uk-table-divider uk-table-responsive uk-table-middle"
+            >
               <thead>
                 <tr>
                   <th><input type="checkbox" id="selectAll" /></th>
                   <th>Title</th>
-                  <th>Details URL</th>
                   <th>Metadata</th>
                   <th>Image</th>
                 </tr>
@@ -216,7 +248,9 @@
           <div id="downloadSpinner" class="uk-margin">
             <span uk-spinner="ratio: 3"></span>
           </div>
-          <div id="logFeed"><span class="fade">Waiting for updates...</span></div>
+          <div id="logFeed">
+            <span class="fade">Waiting for updates...</span>
+          </div>
         </div>
       </div>
     </div>
@@ -270,18 +304,33 @@
           .done((data) => {
             $("#loadingSpinner").addClass("uk-hidden");
             if (!data.length) {
-              $("#resultsTable").append('<tr><td colspan="5">No new books found.</td></tr>');
+              $("#resultsTable").append(
+                '<tr><td colspan="5">No new books found.</td></tr>'
+              );
             } else {
               data.forEach((item) => {
                 $("#resultsTable").append(`
-                  <tr>
-                    <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
-                    <td>${item.title}</td>
-                    <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
-                    <td>${item.metaText}</td>
-                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
-                  </tr>
-                `);
+  <tr>
+    <td style="width: 5%;">
+      <input type="checkbox" class="selectRow" data-details-url="${
+        item.detailsUrl
+      }">
+    </td>
+    <td style="width: 25%;">
+      <a href="${item.detailsUrl}" target="_blank">${item.title}</a>
+    </td>
+    <td style="width: 35%;">
+      ${item.metaText}
+    </td>
+    <td style="width: 35%;">
+      ${
+        item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">`
+          : ""
+      }
+    </td>
+  </tr>
+`);
               });
             }
             $("#resultsSection").removeClass("uk-hidden");
@@ -303,18 +352,33 @@
           .done((data) => {
             $("#loadingSpinner").addClass("uk-hidden");
             if (!data.length) {
-              $("#resultsTable").append('<tr><td colspan="5">No results found.</td></tr>');
+              $("#resultsTable").append(
+                '<tr><td colspan="5">No results found.</td></tr>'
+              );
             } else {
               data.forEach((item) => {
                 $("#resultsTable").append(`
-                  <tr>
-                    <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
-                    <td>${item.title}</td>
-                    <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
-                    <td>${item.metaText}</td>
-                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
-                  </tr>
-                `);
+  <tr>
+    <td style="width: 5%;">
+      <input type="checkbox" class="selectRow" data-details-url="${
+        item.detailsUrl
+      }">
+    </td>
+    <td style="width: 25%;">
+      <a href="${item.detailsUrl}" target="_blank">${item.title}</a>
+    </td>
+    <td style="width: 35%;">
+      ${item.metaText}
+    </td>
+    <td style="width: 35%;">
+      ${
+        item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">`
+          : ""
+      }
+    </td>
+  </tr>
+`);
               });
             }
             $("#resultsSection").removeClass("uk-hidden");
@@ -339,18 +403,33 @@
           .done((data) => {
             $("#loadingSpinner").addClass("uk-hidden");
             if (!data.length) {
-              $("#resultsTable").append('<tr><td colspan="5">No results found.</td></tr>');
+              $("#resultsTable").append(
+                '<tr><td colspan="5">No results found.</td></tr>'
+              );
             } else {
               data.forEach((item) => {
                 $("#resultsTable").append(`
-                  <tr>
-                    <td><input type="checkbox" class="selectRow" data-details-url="${item.detailsUrl}"></td>
-                    <td>${item.title}</td>
-                    <td><a href="${item.detailsUrl}" target="_blank">${item.detailsUrl}</a></td>
-                    <td>${item.metaText}</td>
-                    <td>${item.imageUrl ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">` : ""}</td>
-                  </tr>
-                `);
+  <tr>
+    <td style="width: 5%;">
+      <input type="checkbox" class="selectRow" data-details-url="${
+        item.detailsUrl
+      }">
+    </td>
+    <td style="width: 25%;">
+      <a href="${item.detailsUrl}" target="_blank">${item.title}</a>
+    </td>
+    <td style="width: 35%;">
+      ${item.metaText}
+    </td>
+    <td style="width: 35%;">
+      ${
+        item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="Book Image" class="result-image">`
+          : ""
+      }
+    </td>
+  </tr>
+`);
               });
             }
             $("#resultsSection").removeClass("uk-hidden");
@@ -361,33 +440,36 @@
           });
       }
 
-          // Called on page load to establish SSE for collection changes
-    function initCollectionSSE() {
-      const source = new EventSource('/collection/stream');
-      source.onmessage = function(event) {
-        const collection = JSON.parse(event.data);
-        renderCollection(collection);
-      };
-      source.onerror = function(err) {
-        console.error('SSE error on /collection/stream:', err);
-      };
-    }
-
-    // Renders the collection data into #rsidebar as small "cards"
-    function renderCollection(collection) {
-      const container = $('#rsidebar');
-      container.empty();
-
-      if (!collection.length) {
-        container.html('<p>No items in collection.</p>');
-        return;
+      // Called on page load to establish SSE for collection changes
+      function initCollectionSSE() {
+        const source = new EventSource("/collection/stream");
+        source.onmessage = function (event) {
+          const collection = JSON.parse(event.data);
+          renderCollection(collection);
+        };
+        source.onerror = function (err) {
+          console.error("SSE error on /collection/stream:", err);
+        };
       }
 
-      let html = '';
-      collection.forEach(item => {
-        const statusClass = getStatusClass(item.status);
-        let progress = (item.status === "downloading") ? `(${(item.progress * 100).toFixed(1)}%)` : "";
-        html += `
+      // Renders the collection data into #rsidebar as small "cards"
+      function renderCollection(collection) {
+        const container = $("#rsidebar");
+        container.empty();
+
+        if (!collection.length) {
+          container.html("<p>No items in collection.</p>");
+          return;
+        }
+
+        let html = "";
+        collection.forEach((item) => {
+          const statusClass = getStatusClass(item.status);
+          let progress =
+            item.status === "downloading"
+              ? `(${(item.progress * 100).toFixed(1)}%)`
+              : "";
+          html += `
           <div class="uk-card uk-card-default uk-card-small uk-margin-small collection-card">
             <div class="uk-card-body">
               <span class="item-title">${item.title}</span>
@@ -395,29 +477,35 @@
             </div>
           </div>
         `;
-      });
+        });
 
-      container.html(html);
-    }
-
-    // Return a CSS class name based on the status for color-coding
-    function getStatusClass(status) {
-      switch (status) {
-        case 'wanted':    return 'status-wanted';
-        case 'snatched':  return 'status-snatched';
-        case 'downloading': return 'status-downloading';
-        case 'completed': return 'status-completed';
-        case 'failed':    return 'status-failed';
-        default:          return '';
+        container.html(html);
       }
-    }
+
+      // Return a CSS class name based on the status for color-coding
+      function getStatusClass(status) {
+        switch (status) {
+          case "wanted":
+            return "status-wanted";
+          case "snatched":
+            return "status-snatched";
+          case "downloading":
+            return "status-downloading";
+          case "completed":
+            return "status-completed";
+          case "failed":
+            return "status-failed";
+          default:
+            return "";
+        }
+      }
 
       $(function () {
         // Load the sidebar and new books on page load
         loadSidebar();
         loadNewBooksContent();
         // Initialize SSE for the collection
-      initCollectionSSE();
+        initCollectionSSE();
 
         $("#searchForm").on("submit", performSearch);
 
@@ -433,41 +521,40 @@
         });
 
         $("#downloadBtn").click(function () {
-  // Gather selected rows
-  let urls = [];
-  let titles = [];
+          // Gather selected rows
+          let urls = [];
+          let titles = [];
 
-  $(".selectRow:checked").each((_, el) => {
-    let $row = $(el).closest("tr");
-    // The details URL is stored in data-details-url
-    let detailsUrl = $(el).data("details-url");
-    // The title is in the second table cell (nth-child(2))
-    let titleText = $row.find("td:nth-child(2)").text().trim();
+          $(".selectRow:checked").each((_, el) => {
+            let $row = $(el).closest("tr");
+            // The details URL is stored in data-details-url
+            let detailsUrl = $(el).data("details-url");
+            // The title is in the second table cell (nth-child(2))
+            let titleText = $row.find("td:nth-child(2)").text().trim();
 
-    urls.push(detailsUrl);
-    titles.push(titleText);
-  });
+            urls.push(detailsUrl);
+            titles.push(titleText);
+          });
 
-  if (!urls.length) return;
+          if (!urls.length) return;
 
-  openDownloadModal();
+          openDownloadModal();
 
-  $.ajax({
-    url: "/download",
-    method: "POST",
-    contentType: "application/json",
-    data: JSON.stringify({ detailsUrls: urls, titles: titles }),
-  })
-    .done(() => {
-      console.log("Download initiated.");
-      closeDownloadModal();
-    })
-    .fail(() => {
-      closeDownloadModal();
-      console.error("Error initiating download.");
-    });
-});
-
+          $.ajax({
+            url: "/download",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ detailsUrls: urls, titles: titles }),
+          })
+            .done(() => {
+              console.log("Download initiated.");
+              closeDownloadModal();
+            })
+            .fail(() => {
+              closeDownloadModal();
+              console.error("Error initiating download.");
+            });
+        });
       });
 
       // Download Modal Functions
@@ -500,12 +587,11 @@
         }, 50);
       }
       // Attach a delegated click handler to .browseLink items
-$(document).on('click', '.browseLink', function(e) {
-  e.preventDefault();
-  const path = $(this).data('path');
-  loadBrowseContent(path);
-});
-
+      $(document).on("click", ".browseLink", function (e) {
+        e.preventDefault();
+        const path = $(this).data("path");
+        loadBrowseContent(path);
+      });
     </script>
   </body>
 </html>

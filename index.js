@@ -159,7 +159,8 @@ async function searchAudiobooks(query, browse = false) {
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = browse ? `/page/${page}${encodedQuery}` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+        const pagePath = browse ? `${encodedQuery}/page/${page}` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+        console.log(pagePath);
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {

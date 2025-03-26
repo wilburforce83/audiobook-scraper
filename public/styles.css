@@ -72,7 +72,8 @@ select {
 
 /* Tables */
 .uk-table {
-  background-color: transparent;
+  table-layout: fixed;
+  width: 100%;
 }
 .uk-table-divider > tbody > tr {
   border-bottom: 1px solid var(--uk-border-color);
