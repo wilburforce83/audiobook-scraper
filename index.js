@@ -103,7 +103,7 @@ async function fetchWithBaseUrls(path) {
       try {
         const response = await axios.get(fullUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 3000,
+          timeout: 1500,
         });
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
@@ -159,7 +159,7 @@ async function searchAudiobooks(query, browse = false) {
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+        const pagePath = browse ? `/page/${page}${query}` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {
