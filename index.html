@@ -548,6 +548,11 @@
           })
             .done(() => {
               console.log("Download initiated.");
+              // Clear the checkboxes
+  $(".selectRow").prop("checked", false);
+  $("#selectAll").prop("checked", false);
+  // Hide the button again if needed
+  $("#downloadBtn").addClass("uk-hidden");
               closeDownloadModal();
             })
             .fail(() => {
