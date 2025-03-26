@@ -1,3 +1,5 @@
 node_modules
 .env
-db
+db/collection.json
+db/leftSidebarLinks.json
+db/newBooks.json
