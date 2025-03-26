@@ -386,11 +386,12 @@
       let html = '';
       collection.forEach(item => {
         const statusClass = getStatusClass(item.status);
+        let progress = (item.status === "downloading") ? `(${(item.progress * 100).toFixed(1)}%)` : "";
         html += `
           <div class="uk-card uk-card-default uk-card-small uk-margin-small collection-card">
             <div class="uk-card-body">
               <span class="item-title">${item.title}</span>
-              <span class="item-status ${statusClass}">${item.status}</span>
+              <span class="item-status ${statusClass}">${item.status}(${progress}%)</span>
             </div>
           </div>
         `;
