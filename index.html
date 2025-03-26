@@ -137,8 +137,8 @@
     /* Example color classes for different statuses */
     .status-wanted { color: #f0ad4e; }     /* or background if you prefer a badge style */
     .status-snatched { color: #0275d8; }
-    .status-torrented { color: #5cb85c; }
-    .status-processed { color: #aaa; }
+    .status-downloading { color: #5cb85c; }
+    .status-completed { color: #aaa; }
     .status-failed { color: #d9534f; }
     </style>
   </head>
@@ -405,8 +405,8 @@
       switch (status) {
         case 'wanted':    return 'status-wanted';
         case 'snatched':  return 'status-snatched';
-        case 'torrented': return 'status-torrented';
-        case 'processed': return 'status-processed';
+        case 'downloading': return 'status-downloading';
+        case 'completed': return 'status-completed';
         case 'failed':    return 'status-failed';
         default:          return '';
       }
