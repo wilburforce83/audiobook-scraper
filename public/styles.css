@@ -135,3 +135,119 @@ a:hover {
   background-color: #444444; /* Medium dark grey */
   color: var(--uk-text-color); /* Ensure text is visible */
 }
+
+
+/* Dark-themed modal styling */
+#settingsModal .uk-modal-dialog {
+  background-color: var(--uk-background-primary);
+  color: var(--uk-text-color);
+  border: 1px solid var(--uk-border-color);
+  border-radius: 6px;
+  /* Optionally add some padding */
+  padding: 20px;
+}
+
+/* Make headings in the modal match your text color */
+#settingsModal h2 {
+  color: var(--uk-text-color);
+}
+
+/* Form labels */
+#settingsModal .uk-form-stacked label {
+  color: var(--uk-text-color);
+  margin-bottom: 6px;
+}
+
+/* Input fields */
+#settingsModal .uk-input {
+  background-color: var(--uk-background-secondary);
+  color: var(--uk-text-color);
+  border: 1px solid var(--uk-border-color);
+}
+
+/* Optional: style the save/cancel buttons */
+#settingsModal .uk-button-primary {
+  background-color: var(--uk-secondary-color);
+  border-color: var(--uk-secondary-color);
+  color: var(--uk-background-primary);
+}
+#settingsModal .uk-button-default {
+  background-color: var(--uk-background-secondary);
+  border: 1px solid var(--uk-border-color);
+  color: var(--uk-text-color);
+}
+
+/* Warnings under library path / port */
+#settingsModal .uk-text-warning {
+  color: #f0ad4e; /* or any color you prefer for warnings */
+}
+
+/* Dark-themed modal dialog (background + text) */
+#settingsModal .uk-modal-dialog {
+  background-color: var(--uk-background-primary);
+  color: var(--uk-text-color);
+  border: 1px solid var(--uk-border-color);
+}
+
+/* Ensure the close button (the "X" icon) isn't white */
+#settingsModal .uk-modal-close-full,
+#settingsModal .uk-modal-close-default {
+  color: var(--uk-text-color) !important; /* or any accent color you prefer */
+}
+
+/* Optionally, hover/focus states if you want a different color */
+#settingsModal .uk-modal-close-full:hover,
+#settingsModal .uk-modal-close-full:focus,
+#settingsModal .uk-modal-close-default:hover,
+#settingsModal .uk-modal-close-default:focus {
+  color: var(--uk-accent-color) !important; 
+}
+
+/* Dark theme for UIkit confirm modals (the small dialog) */
+.uk-modal.uk-open .uk-modal-dialog {
+  background-color: var(--uk-background-primary) !important;
+  color: var(--uk-text-color) !important;
+  border: 1px solid var(--uk-border-color) !important;
+}
+
+/* Close button (the small "X" in the corner) */
+.uk-modal.uk-open .uk-modal-close-default {
+  color: var(--uk-text-color) !important;
+}
+.uk-modal.uk-open .uk-modal-close-default:hover,
+.uk-modal.uk-open .uk-modal-close-default:focus {
+  color: var(--uk-accent-color) !important; /* optional hover color */
+}
+
+/* Confirm/Cancel buttons in the UIkit confirm dialog */
+.uk-modal.uk-open .uk-button.uk-button-primary {
+  background-color: var(--uk-secondary-color) !important;
+  border-color: var(--uk-secondary-color) !important;
+  color: var(--uk-background-primary) !important;
+}
+.uk-modal.uk-open .uk-button.uk-button-default {
+  background-color: var(--uk-background-secondary) !important;
+  border: 1px solid var(--uk-border-color) !important;
+  color: var(--uk-text-color) !important;
+}
+
+/* Dark-themed modal dialog (background + text) */
+#settingsModal .uk-modal-dialog {
+  background-color: var(--uk-background-primary);
+  color: var(--uk-text-color);
+  border: 1px solid var(--uk-border-color);
+}
+
+/* Ensure the close button (the "X" icon) isn't white */
+#settingsModal .uk-modal-close-full,
+#settingsModal .uk-modal-close-default {
+  color: var(--uk-text-color) !important; /* or any accent color you prefer */
+}
+
+/* Optionally, hover/focus states if you want a different color */
+#settingsModal .uk-modal-close-full:hover,
+#settingsModal .uk-modal-close-full:focus,
+#settingsModal .uk-modal-close-default:hover,
+#settingsModal .uk-modal-close-default:focus {
+  color: var(--uk-accent-color) !important; 
+}

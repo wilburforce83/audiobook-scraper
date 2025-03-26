@@ -1,0 +1,9 @@
+{
+  "username": "audiobook",
+  "password": "bo0k5",
+  "uiport": 3012,
+  "audiobookShelfPath": "/path/to/shelf",
+  "audiobookbayURLs": "https://audiobookbay.lu,http://audiobookbay.se",
+  "maxTorrents": 5,
+  "torrentTimeout": 30000
+}

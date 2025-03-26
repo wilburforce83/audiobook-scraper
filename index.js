@@ -12,6 +12,45 @@ const cron = require('node-cron');
 
 const downloadEmitter = new EventEmitter();
 
+
+// Path for the settings file
+const settingsFilePath = path.join(__dirname, 'db', 'settings.json');
+
+// Default settings
+const defaultSettings = {
+  username: "audio",
+  password: "bo0k5",
+  uiport: 3000,
+  audiobookShelfPath: "/path/to/shelf",
+  audiobookbayURLs: "https://audiobookbay.lu,http://audiobookbay.se",
+  maxTorrents: 5,
+  torrentTimeout: 30000
+};
+
+// Helper: load settings from file
+function loadSettings() {
+  try {
+    return JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
+  } catch (err) {
+    return null; // indicates missing or invalid file
+  }
+}
+
+// Helper: save settings to file
+function saveSettings(settings) {
+  fs.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
+}
+
+// On server start: if no file, create it with default data
+if (!fs.existsSync(settingsFilePath)) {
+  console.log("No settings.json found; creating default file.");
+  saveSettings(defaultSettings);
+} else {
+  // Optionally validate or merge with defaults if you want
+  console.log("settings.json found; using existing settings.");
+}
+
+
 // WebTorrent client
 let client;
 (async () => {
@@ -23,15 +62,32 @@ let client;
 
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 const session = require('express-session');
 const bodyParser = require('body-parser');
+let USERNAME;
+let PASSWORD;
+let TORRENT_TIMEOUT;
+let MAX_ACTIVE_TORRENTS;
+let port;
+let LIBRARY_PATH;
+let baseUrls;
 
-const USERNAME = process.env.AUTH_USERNAME;
-const PASSWORD = process.env.AUTH_PASSWORD;
-const TORRENT_TIMEOUT = process.env.TORRENT_TIMEOUT || 30000;
-const MAX_ACTIVE_TORRENTS = parseInt(process.env.MAX_ACTIVE_TORRENTS, 10) || 3;
+function reloadSettings() {
+  const s = loadSettings();
+  USERNAME = s.username;
+  PASSWORD = s.password;
+  TORRENT_TIMEOUT = s.torrentTimeout;
+  MAX_ACTIVE_TORRENTS = s.maxTorrents;
+  port = s.uiport;
+  LIBRARY_PATH = s.audiobookShelfPath;
+  baseUrls = s.audiobookbayURLs
+    ? s.audiobookbayURLs.split(',').map(url => url.trim())
+    : [];
+}
+
+reloadSettings();
+
 
 // Basic config
 app.use(express.json());
@@ -74,10 +130,8 @@ app.get('/', requireAuth, (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Env config
-const baseUrls = process.env.BASE_URLS
-  ? process.env.BASE_URLS.split(',').map(url => url.trim())
-  : [];
-const LIBRARY_PATH = process.env.LIBRARY_PATH || '/absolute/path/to/library';
+
+
 
 const limitRequests = pLimit(5);
 
@@ -643,6 +697,41 @@ updateNewBooks();
 app.get('/newbooks', requireAuth, (req, res) => {
   const data = loadNewBooksData();
   res.json(data);
+});
+
+
+// GET /settings => returns the current settings as JSON
+app.get('/settings', requireAuth, (req, res) => {
+  const current = loadSettings();
+  if (!current) {
+    return res.status(500).json({ error: "Failed to load settings." });
+  }
+  res.json(current);
+});
+
+// POST /settings => replaces settings with the request body
+app.post('/settings', requireAuth, (req, res) => {
+  // The request body should contain all the needed fields
+  const newSettings = req.body;
+
+  // Optionally validate required fields if you want
+  // e.g. if(!newSettings.username || !newSettings.password) { ... }
+
+  // Save the new settings
+  saveSettings(newSettings);
+  reloadSettings();
+
+  console.log("Settings updated:", newSettings);
+  res.json({ message: "Settings saved successfully." });
+});
+
+
+
+app.post('/restart', (req, res) => {
+  res.json({ message: "Server is restarting..." });
+  setTimeout(() => {
+    process.exit(0); 
+  }, 300);
 });
 
 

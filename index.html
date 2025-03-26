@@ -189,16 +189,11 @@
           </div>
           <!-- Right Column: GitHub Icon (25% of width) -->
           <div class="uk-width-1-4 uk-text-right">
-            <a href="https://github.com/wilburforce83/audiobook-scraper" target="_blank">
-              <svg style="fill: #A56C3B;" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
-                <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
-                  0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58
-                  1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11
-                  0 0 .67-.22 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.27.82 2.15
-                  0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8
-                  c0-4.42-3.58-8-8-8z"></path>
-              </svg>
-              
+            <a href="#" onclick="openSettingsModal()" style="color: #A56C3B;">
+              <span uk-icon="icon: cog"></span>
+            </a>
+            <a href="https://github.com/wilburforce83/audiobook-scraper" target="_blank" style="color: #A56C3B;">
+              <span uk-icon="icon: github"></span>
             </a>
           </div>
         </div>
@@ -276,6 +271,98 @@
         </div>
       </div>
     </div>
+
+    <!-- Fullscreen Settings Modal -->
+<div id="settingsModal" class="uk-modal-full" uk-modal>
+  <div class="uk-modal-dialog uk-modal-body uk-height-viewport uk-flex uk-flex-center uk-flex-middle">
+    <!-- "X" close button in top-right corner -->
+    <button class="uk-modal-close-full" type="button" uk-close></button>
+
+    <!-- Container for the form -->
+    <div class="uk-width-1-2@m">
+      <h2>Settings</h2>
+      <form id="settingsForm" class="uk-form-stacked">
+        
+        <!-- Username -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsUsername">Username</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsUsername" type="text" placeholder="admin">
+          </div>
+        </div>
+        
+        <!-- Password -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsPassword">Password</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsPassword" type="password" placeholder="secret">
+          </div>
+        </div>
+        
+        <!-- Port -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsPort">Port</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsPort" type="number" placeholder="3000">
+            <p class="uk-text-small uk-text-warning">
+              Server restart required for changes to take effect.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Library Path -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsLibraryPath">Library Path</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsLibraryPath" type="text" placeholder="/path/to/shelf">
+            <p class="uk-text-small uk-text-warning">
+              Server restart required for changes to take effect.
+            </p>
+          </div>
+        </div>
+        
+        <!-- AudiobookBay URLs (comma separated) -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsURLs">AudiobookBay URLs (comma separated)</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsURLs" type="text" placeholder="https://audiobookbay.fi, https://audiobookbay.nl">
+          </div>
+        </div>
+        
+        <!-- Max Torrents -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsMaxTorrents">Max Torrents</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsMaxTorrents" type="number" placeholder="3">
+          </div>
+        </div>
+        
+        <!-- Torrent Timeout -->
+        <div class="uk-margin">
+          <label class="uk-form-label" for="settingsTimeout">Torrent Timeout (ms)</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" id="settingsTimeout" type="number" placeholder="30000">
+          </div>
+        </div>
+        
+        <!-- Buttons (Cancel / Save) -->
+        <div class="uk-margin-top uk-flex uk-flex-right">
+           <!-- RELOAD BUTTON (added) -->
+           <button type="button" class="uk-button uk-button-default uk-margin-right" id="serverRestartBtn">
+            <span uk-icon="icon: refresh"></span>
+          </button>
+          <button type="button" class="uk-button uk-button-default uk-margin-right" id="settingsCancelBtn">
+            Cancel
+          </button>
+          <button type="button" class="uk-button uk-button-primary" id="settingsSaveBtn">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script>
@@ -480,7 +567,7 @@
         container.empty();
 
         if (!collection.length) {
-          container.html("<p>No items in collection.</p>");
+          container.html("<p>No items in queue.</p>");
           return;
         }
 
@@ -619,6 +706,90 @@
         const path = $(this).data("path");
         loadBrowseContent(path);
       });
+
+      // Opens the settings modal, loads current settings
+function openSettingsModal() {
+  // Clear existing fields or placeholders if needed, or just load them directly
+  fetch('/settings')
+    .then(response => response.json())
+    .then(data => {
+      // Populate each field with current settings
+      document.getElementById('settingsUsername').value = data.username || '';
+      document.getElementById('settingsPassword').value = data.password || '';
+      document.getElementById('settingsPort').value = data.uiport || 3000;
+      document.getElementById('settingsLibraryPath').value = data.audiobookShelfPath || '/path/to/shelf';
+      document.getElementById('settingsURLs').value = data.audiobookbayURLs || 'https://audiobookbay.fi, https://audiobookbay.nl';
+      document.getElementById('settingsMaxTorrents').value = data.maxTorrents || 3;
+      document.getElementById('settingsTimeout').value = data.torrentTimeout || 30000;
+      
+      // Now show the modal
+      UIkit.modal('#settingsModal').show();
+    })
+    .catch(err => {
+      console.error('Error loading settings:', err);
+      alert('Failed to load settings. Check console for details.');
+    });
+}
+
+// Cancel button => close modal without saving
+document.getElementById('settingsCancelBtn').addEventListener('click', () => {
+  UIkit.modal('#settingsModal').hide();
+});
+
+// Save button => gather form data, POST to /settings, then close modal
+document.getElementById('settingsSaveBtn').addEventListener('click', () => {
+  const newSettings = {
+    username: document.getElementById('settingsUsername').value,
+    password: document.getElementById('settingsPassword').value,
+    uiport: parseInt(document.getElementById('settingsPort').value, 10),
+    audiobookShelfPath: document.getElementById('settingsLibraryPath').value,
+    audiobookbayURLs: document.getElementById('settingsURLs').value,
+    maxTorrents: parseInt(document.getElementById('settingsMaxTorrents').value, 10),
+    torrentTimeout: parseInt(document.getElementById('settingsTimeout').value, 10)
+  };
+
+  fetch('/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newSettings)
+  })
+    .then(response => response.json())
+    .then(result => {
+      console.log('Settings updated:', result);
+      UIkit.modal('#settingsModal').hide();
+    })
+    .catch(err => {
+      console.error('Error saving settings:', err);
+      alert('Failed to save settings. Check console for details.');
+    });
+});
+
+
+// Attach a click listener to the new "Restart Server" button
+document.getElementById('serverRestartBtn').addEventListener('click', () => {
+  // UIkit confirm returns a Promise
+  UIkit.modal.confirm('Are you sure you want to restart the server?')
+    .then(() => {
+      // User clicked "OK"
+      fetch('/restart', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Restart response:', data);
+          // Optionally close the modal
+          UIkit.modal('#settingsModal').hide();
+          // Possibly show a message: "Server is restarting..."
+        })
+        .catch(err => {
+          console.error('Error restarting server:', err);
+          alert('Failed to restart server. Check console for details.');
+        });
+    })
+    .catch(() => {
+      // User clicked "Cancel" in the confirmation
+      console.log('Server restart canceled.');
+    });
+});
+
     </script>
   </body>
 </html>
