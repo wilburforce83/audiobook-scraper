@@ -5,5 +5,6 @@
   "audiobookShelfPath": "/path/to/shelf",
   "audiobookbayURLs": "https://audiobookbay.lu,http://audiobookbay.se",
   "maxTorrents": 5,
-  "torrentTimeout": 30000
+  "torrentTimeout": 30000,
+  "excludeRomance": true
 }

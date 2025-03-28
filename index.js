@@ -12,7 +12,6 @@ const cron = require('node-cron');
 
 const downloadEmitter = new EventEmitter();
 
-
 // Path for the settings file
 const settingsFilePath = path.join(__dirname, 'db', 'settings.json');
 
@@ -24,7 +23,8 @@ const defaultSettings = {
   audiobookShelfPath: "/path/to/shelf",
   audiobookbayURLs: "https://audiobookbay.lu,http://audiobookbay.se",
   maxTorrents: 5,
-  torrentTimeout: 30000
+  torrentTimeout: 30000,
+  excludeRomance: true,
 };
 
 // Helper: load settings from file
@@ -46,10 +46,8 @@ if (!fs.existsSync(settingsFilePath)) {
   console.log("No settings.json found; creating default file.");
   saveSettings(defaultSettings);
 } else {
-  // Optionally validate or merge with defaults if you want
   console.log("settings.json found; using existing settings.");
 }
-
 
 // WebTorrent client
 let client;
@@ -59,7 +57,6 @@ let client;
   console.log('WebTorrent client created in Node. Resuming active/queued torrents...');
   resumeActiveTorrents(); // call your resume logic here
 })();
-
 
 const app = express();
 
@@ -72,6 +69,7 @@ let MAX_ACTIVE_TORRENTS;
 let port;
 let LIBRARY_PATH;
 let baseUrls;
+let suffix;
 
 function reloadSettings() {
   const s = loadSettings();
@@ -84,10 +82,15 @@ function reloadSettings() {
   baseUrls = s.audiobookbayURLs
     ? s.audiobookbayURLs.split(',').map(url => url.trim())
     : [];
+    if(s.excludeRomance){
+      suffix = "&cat=-103";
+    } else{
+      suffix = "&cat=undefined%2Cundefined";
+    }
+
 }
 
 reloadSettings();
-
 
 // Basic config
 app.use(express.json());
@@ -130,9 +133,6 @@ app.get('/', requireAuth, (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Env config
-
-
-
 const limitRequests = pLimit(5);
 
 // Global axios defaults
@@ -157,7 +157,9 @@ async function fetchWithBaseUrls(path) {
       try {
         const response = await axios.get(fullUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-          timeout: 1500,
+          timeout: 2500,
+          maxRedirects: 5,
+          validateStatus: status => status >= 200 && status < 400,
         });
         console.log(`Successfully fetched from base: ${base} on attempt ${attempts + 1}`);
         return { data: response.data, baseUsed: base };
@@ -201,8 +203,17 @@ function getTotalPages(html) {
 }
 
 async function searchAudiobooks(query, browse = false) {
-  const encodedQuery = browse ? query.replace(/\/$/, '') : encodeSearchQuery(query);
-  const searchPath = browse ? encodedQuery : `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+  let searchPath, basePath;
+  
+  if (browse) {
+    // Ensure the first page URL ends with a trailing slash
+    searchPath = query.endsWith('/') ? query : query + '/';
+    // Use a version without trailing slash for constructing additional page URLs
+    basePath = query.replace(/\/$/, '');
+  } else {
+    const encodedQuery = encodeSearchQuery(query);
+    searchPath = `/?s=${encodedQuery}${suffix}`;
+  }
   
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
@@ -214,9 +225,9 @@ async function searchAudiobooks(query, browse = false) {
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = browse ? `${encodedQuery}/page/${page}/` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
-
-        console.log(pagePath);
+        const pagePath = browse
+          ? `${basePath}/page/${page}/`
+          : `/page/${page}/?s=${encodeSearchQuery(query)}${suffix}`;
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
             .then(async res => {
@@ -313,7 +324,6 @@ function updateItemInCollection(item) {
       return;
     }
   }
-  // not found, push new
   coll.push(item);
   saveCollection(coll);
 }
@@ -420,50 +430,38 @@ function startTorrentDownload(item) {
   item.progress = 0.0;
   updateItemInCollection(item);
 
-  // Once metadata is fetched, we do nothing special unless you want to store a .torrent
   torrent.once('metadata', () => {
     console.log(`Metadata found for hash=${item.hash}, title="${item.title}"`);
   });
 
-  // On each download chunk => update progress
   torrent.on('download', bytes => {
-    const prog = torrent.progress; // 0..1
+    const prog = torrent.progress;
     item.progress = prog;
     item.status = 'downloading';
     updateItemInCollection(item);
   });
 
-  // On done => set status=completed
   torrent.once('done', () => {
     item.progress = 1.0;
     item.status = 'completed';
-
-    // Optionally create .torrent file
     const torrentPath = path.join(LIBRARY_PATH, `${item.hash}.torrent`);
     fs.writeFileSync(torrentPath, torrent.torrentFile);
     item.filename = `${item.hash}.torrent`;
-
     updateItemInCollection(item);
-
     console.log(`Torrent completed for hash=${item.hash}, title="${item.title}"`);
     torrent.destroy(() => {
       console.log(`Destroyed torrent instance for hash=${item.hash}`);
     });
-
-    // After finishing, we can try to start any queued items
     tryStartQueuedItems();
   });
 
-  // On error => increment attempts, maybe fail if > 10
   torrent.once('error', err => {
     console.log(`Torrent error for hash=${item.hash} => ${err.message}`);
     item.attempts++;
     if (item.attempts > 10) {
       item.status = 'failed';
       console.log(`Item => status=failed, title="${item.title}"`);
-    }
-    else {
-      // keep it "wanted" or "snatched"? or do "queued"? up to you
+    } else {
       item.status = 'wanted';
     }
     updateItemInCollection(item);
@@ -498,7 +496,6 @@ function tryStartQueuedItems() {
  */
 async function processCollection() {
   let coll = loadCollection();
-
   const maxWantedPerCycle = 5;
   let wantedCount = 0;
 
@@ -506,7 +503,6 @@ async function processCollection() {
     let item = coll[i];
     if (!['wanted','snatched','queued','downloading','torrented'].includes(item.status)) continue;
 
-    // if "completed" => check if file missing => processed
     if (item.status === 'completed') {
       const torrentFile = path.join(LIBRARY_PATH, item.filename || '');
       if (!fs.existsSync(torrentFile)) {
@@ -517,12 +513,10 @@ async function processCollection() {
       continue;
     }
 
-    // if "torrented"? or "downloading"? We'll skip. "downloading" is handled by the torrent code
     if (item.status === 'downloading') {
       continue;
     }
 
-    // if item.status === 'wanted' && item.hash === ''
     if (item.status === 'wanted' && !item.hash) {
       if (wantedCount >= maxWantedPerCycle) continue;
       wantedCount++;
@@ -548,16 +542,13 @@ async function processCollection() {
       saveCollection(coll);
     }
 
-    // If item has a hash but status is 'wanted' or 'snatched'
     if ((item.status === 'wanted' || item.status === 'snatched') && item.hash) {
-      // Check concurrency
       const activeCount = getActiveDownloadCount(coll);
       if (activeCount >= MAX_ACTIVE_TORRENTS) {
         item.status = 'queued';
         coll[i] = item;
         console.log(`Item => queued. Title="${item.title}"`);
       } else {
-        // Start the torrent
         startTorrentDownload(item);
         item.status = 'downloading';
         item.progress = 0.0;
@@ -567,35 +558,26 @@ async function processCollection() {
       saveCollection(coll);
     }
   }
-
-  // If any items are 'completed' => check if missing => 'processed' (we did that above)
-  // Done
   saveCollection(coll);
 }
 
 // Start queued items if there's capacity
-// (we call this after finishing a torrent, or you can call after processCollection)
 function resumeActiveTorrents() {
   let coll = loadCollection();
-  // any item with status='downloading' => re-add torrent
-  // any item with status='queued' => maybe we can start if there's capacity
   let activeCount = getActiveDownloadCount(coll);
 
   for (let i = 0; i < coll.length; i++) {
     let item = coll[i];
     if (item.status === 'downloading') {
-      // re-add the torrent
       if (item.hash) {
         console.log(`Resuming torrent for hash=${item.hash}, title="${item.title}"`);
         startTorrentDownload(item);
       } else {
-        // no hash => can't resume, keep it wanted or something
         item.status = 'wanted';
       }
     }
   }
   saveCollection(coll);
-  // after that, try queued items
   tryStartQueuedItems();
 }
 
@@ -603,7 +585,6 @@ cron.schedule('*/10 * * * *', () => {
   console.log('Running collection processing every 10 minutes...');
   processCollection();
 });
-
 
 /* --- Left Sidebar Data (Daily) --- */
 const dbFilePath = path.join(__dirname, 'db', 'leftSidebarLinks.json');
@@ -701,7 +682,6 @@ app.get('/newbooks', requireAuth, (req, res) => {
   res.json(data);
 });
 
-
 // GET /settings => returns the current settings as JSON
 app.get('/settings', requireAuth, (req, res) => {
   const current = loadSettings();
@@ -713,30 +693,19 @@ app.get('/settings', requireAuth, (req, res) => {
 
 // POST /settings => replaces settings with the request body
 app.post('/settings', requireAuth, (req, res) => {
-  // The request body should contain all the needed fields
   const newSettings = req.body;
-
-  // Optionally validate required fields if you want
-  // e.g. if(!newSettings.username || !newSettings.password) { ... }
-
-  // Save the new settings
   saveSettings(newSettings);
   reloadSettings();
-
   console.log("Settings updated:", newSettings);
   res.json({ message: "Settings saved successfully." });
 });
 
-
-
 app.post('/restart', (req, res) => {
   res.json({ message: "Server is restarting..." });
   setTimeout(() => {
-    process.exit(0); 
+    process.exit(0);
   }, 300);
 });
-
-
 
 // Start server
 app.listen(port, () => {

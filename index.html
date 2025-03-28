@@ -329,7 +329,14 @@
             <input class="uk-input" id="settingsURLs" type="text" placeholder="please only use audiobookbay urls">
           </div>
         </div>
-        
+        <!-- Exclude Romance -->
+<div class="uk-margin">
+  <label class="uk-form-label" for="settingsExcludeRomance">Exclude Romance</label>
+  <div class="uk-form-controls">
+    <input class="uk-checkbox" id="settingsExcludeRomance" type="checkbox">
+  </div>
+</div>
+
         <!-- Max Torrents -->
         <div class="uk-margin">
           <label class="uk-form-label" for="settingsMaxTorrents">Max Torrents</label>
@@ -722,6 +729,8 @@ function openSettingsModal() {
       document.getElementById('settingsURLs').value = data.audiobookbayURLs || 'https://audiobookbay.fi, https://audiobookbay.nl';
       document.getElementById('settingsMaxTorrents').value = data.maxTorrents || 3;
       document.getElementById('settingsTimeout').value = data.torrentTimeout || 30000;
+      // Populate the new Exclude Romance checkbox (checked if true)
+      document.getElementById('settingsExcludeRomance').checked = data.excludeRomance === true;
       
       // Now show the modal
       UIkit.modal('#settingsModal').show();
@@ -746,7 +755,9 @@ document.getElementById('settingsSaveBtn').addEventListener('click', () => {
     audiobookShelfPath: document.getElementById('settingsLibraryPath').value,
     audiobookbayURLs: document.getElementById('settingsURLs').value,
     maxTorrents: parseInt(document.getElementById('settingsMaxTorrents').value, 10),
-    torrentTimeout: parseInt(document.getElementById('settingsTimeout').value, 10)
+    torrentTimeout: parseInt(document.getElementById('settingsTimeout').value, 10),
+     // Include the new checkbox value
+    excludeRomance: document.getElementById('settingsExcludeRomance').checked
   };
 
   fetch('/settings', {
