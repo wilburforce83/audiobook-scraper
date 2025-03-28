@@ -201,8 +201,9 @@ function getTotalPages(html) {
 }
 
 async function searchAudiobooks(query, browse = false) {
-  const encodedQuery = browse ? query : encodeSearchQuery(query);
-  const searchPath = browse ? query : `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+  const encodedQuery = browse ? query.replace(/\/$/, '') : encodeSearchQuery(query);
+  const searchPath = browse ? encodedQuery : `/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+  
   try {
     const { data: firstPageData } = await fetchWithBaseUrls(searchPath);
     await sleep(100);
@@ -213,7 +214,8 @@ async function searchAudiobooks(query, browse = false) {
     if (pagesToFetch > 1) {
       const additionalPagesPromises = [];
       for (let page = 2; page <= pagesToFetch; page++) {
-        const pagePath = browse ? `${encodedQuery}/page/${page}` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+        const pagePath = browse ? `${encodedQuery}/page/${page}/` : `/page/${page}/?s=${encodedQuery}&cat=undefined%2Cundefined`;
+
         console.log(pagePath);
         additionalPagesPromises.push(
           fetchWithBaseUrls(pagePath)
