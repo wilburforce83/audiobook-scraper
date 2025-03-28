@@ -3,3 +3,4 @@ node_modules
 db/collection.json
 db/leftSidebarLinks.json
 db/newBooks.json
+db/settings.json
