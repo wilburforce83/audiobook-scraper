@@ -707,6 +707,18 @@ app.post('/restart', (req, res) => {
   }, 300);
 });
 
+// DELETE /collection/completed - Remove all items with status "completed" from the collection
+app.delete('/collection/completed', requireAuth, (req, res) => {
+  let collection = loadCollection();
+  const originalLength = collection.length;
+  // Filter out items that are "completed"
+  collection = collection.filter(item => item.status !== "completed");
+  const removedCount = originalLength - collection.length;
+  saveCollection(collection);
+  res.json({ message: `${removedCount} completed item(s) removed from collection.` });
+});
+
+
 // Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

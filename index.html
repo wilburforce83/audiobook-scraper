@@ -252,6 +252,9 @@
         <div class="uk-width-1-4">
           <div id="rsidebar">
             <p>Loading statuses...</p>
+            <p id="clearCompletedLink" style="display: none; text-align: right; margin-top: 5px;">
+              <a href="#" id="clearCompleted" style="font-size: 0.75rem;">Clear Completed</a>
+            </p>
           </div>
         </div>
       </div>
@@ -570,36 +573,65 @@
       }
 
       // Renders the collection data into #rsidebar as small "cards"
-      function renderCollection(collection) {
-        const container = $("#rsidebar");
-        container.empty();
+     // Modify your renderCollection() function to include the logic to show/hide the Clear Completed link:
+function renderCollection(collection) {
+  const container = $("#rsidebar");
+  container.find(".collection-card").remove(); // Remove previous cards (if needed)
+  
+  // Clear the current content (except for the Clear Completed link)
+  // Assume your container has the <p> with id="clearCompletedLink" already in place.
+  // If not, you can rebuild it as in the HTML snippet.
+  container.find("p:not(#clearCompletedLink)").remove();
 
-        if (!collection.length) {
-          container.html("<p>No items in queue.</p>");
-          return;
-        }
+  let html = "";
+  collection.forEach((item) => {
+    const statusClass = getStatusClass(item.status);
+    let progress =
+      item.status === "downloading"
+        ? `(${(item.progress * 100).toFixed(1)}%)`
+        : "";
+    html += `
+      <div class="uk-card uk-card-default uk-card-small uk-margin-small collection-card">
+        <div class="uk-card-body">
+          <span class="item-title">${item.title}</span>
+          <span class="item-status ${statusClass}">${item.status}${progress}</span>
+        </div>
+      </div>
+    `;
+  });
+  // Append the generated cards before the Clear Completed link.
+  $("#clearCompletedLink").before(html);
 
-        let html = "";
-        collection.forEach((item) => {
-          const statusClass = getStatusClass(item.status);
-          let progress =
-            item.status === "downloading"
-              ? `(${(item.progress * 100).toFixed(1)}%)`
-              : "";
-          html += `
-          <div class="uk-card uk-card-default uk-card-small uk-margin-small collection-card">
-            <div class="uk-card-body">
-              <span class="item-title">${item.title}</span>
-              <span class="item-status ${statusClass}">${item.status}${progress}</span>
-            </div>
-          </div>
-        `;
-        });
+  // Check if any item has status "completed" and toggle the link visibility.
+  const hasCompleted = collection.some(item => item.status === "completed");
+  if (hasCompleted) {
+    $("#clearCompletedLink").show();
+  } else {
+    $("#clearCompletedLink").hide();
+  }
+}
 
-        container.html(html);
+// Attach a click event to the Clear Completed link:
+$(document).on("click", "#clearCompleted", function(e) {
+  e.preventDefault();
+  // Confirm with the user
+  if (confirm("Are you sure you want to remove all completed entries?")) {
+    $.ajax({
+      url: "/collection/completed",
+      method: "DELETE",
+      success: function(data) {
+        console.log("Completed items cleared:", data);
+        // Optionally, force a reload of the collection by triggering SSE or directly calling a reload function.
+        // For example, you can reload by calling loadCollection() if you have that logic.
+      },
+      error: function(err) {
+        console.error("Error clearing completed items:", err);
       }
+    });
+  }
+});
 
-      // Return a CSS class name based on the status for color-coding
+// Return a CSS class name based on the status for color-coding
       function getStatusClass(status) {
         switch (status) {
           case "wanted":
