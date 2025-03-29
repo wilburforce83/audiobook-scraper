@@ -103,7 +103,7 @@ services:
       - "3000:3000"
     volumes:
       - ./db:/app/db
-      - /your/local/library:/app/library
+      - /your/local/library:/app/audiobooks
 ```
 
 ## Configuration
