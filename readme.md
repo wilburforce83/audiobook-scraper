@@ -34,7 +34,7 @@ The application automatically creates a `db/settings.json` file with default set
   "username": "audio",
   "password": "bo0k5",
   "uiport": 3000,
-  "audiobookShelfPath": "/path/to/shelf",
+  "audiobookShelfPath": "/audiobooks",
   "audiobookbayURLs": "https://audiobookbay.lu,http://audiobookbay.se",
   "maxTorrents": 5,
   "torrentTimeout": 30000,
@@ -87,7 +87,7 @@ docker build -t wilburforce83/audiobook-scraper:latest .
 2. **Run Docker Container:**
 
 ```bash
-docker run -it --rm -p 3000:3000 -v $(pwd)/db:/app/db -v /your/local/library:/app/library wilburforce83/audiobook-scraper:latest
+docker run -it --rm -p 3000:3000 -v $(pwd)/db:/app/db -v /your/local/library:/app/audiobooks wilburforce83/audiobook-scraper:latest
 ```
 
 3. **Docker Compose:**
