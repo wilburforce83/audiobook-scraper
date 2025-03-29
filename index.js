@@ -20,7 +20,7 @@ const defaultSettings = {
   username: "audio",
   password: "bo0k5",
   uiport: 3000,
-  audiobookShelfPath: "/path/to/shelf",
+  audiobookShelfPath: "/audiobooks",
   audiobookbayURLs: "https://audiobookbay.lu,http://audiobookbay.se",
   maxTorrents: 5,
   torrentTimeout: 30000,
